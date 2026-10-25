@@ -68,9 +68,9 @@ export default function Navbar() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         transition: 'all 0.3s ease',
       }}>
-        <Link to="/" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.2rem', color: logoColor, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src="/logo.png" alt="TIMS Logo" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }} />
-          <span>TIMS</span>
+        <Link to="/" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.35rem', color: logoColor, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src="/logo-emblem.png" alt="TIMS Emblem" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }} />
+          <span style={{ letterSpacing: '0.04em' }}>TIMS</span>
         </Link>
 
         {/* Desktop Nav Links */}

@@ -294,9 +294,11 @@ export function LoginPage() {
                       full_name: gProfile.name,
                       avatar_url: gProfile.picture,
                       role: 'customer',
-                      provider: 'google'
+                      provider: 'google',
+                      email_verified: true
                     };
                     localStorage.setItem('tims_token', `g_token_${tokenResponse.access_token.slice(0, 32)}`);
+                    localStorage.setItem('tims_user', JSON.stringify(googleUser));
                     setUser(googleUser);
                     success('Welcome back, ' + (googleUser.full_name || 'Traveler') + '!');
                     navigate('/dashboard');
@@ -753,9 +755,11 @@ export function RegisterPage() {
                       full_name: gProfile.name,
                       avatar_url: gProfile.picture,
                       role: 'customer',
-                      provider: 'google'
+                      provider: 'google',
+                      email_verified: true
                     };
                     localStorage.setItem('tims_token', `g_token_${tokenResponse.access_token.slice(0, 32)}`);
+                    localStorage.setItem('tims_user', JSON.stringify(googleUser));
                     setUser(googleUser);
                     success('Account created with Google! Welcome, ' + (googleUser.full_name || 'Traveler') + '!');
                     navigate('/dashboard');

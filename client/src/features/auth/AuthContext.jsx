@@ -12,14 +12,28 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check persistent session across page refreshes via HttpOnly cookie
+  // Check persistent session across page refreshes via HttpOnly cookie or stored session
   const refreshUser = useCallback(async () => {
     try {
       const res = await authAPI.profile();
-      setUser(res.data.user);
-      return res.data.user;
+      if (res.data?.user) {
+        setUser(res.data.user);
+        localStorage.setItem('tims_user', JSON.stringify(res.data.user));
+        return res.data.user;
+      }
     } catch (err) {
+      // Restore user if present in localStorage (for Google profile on static Vercel)
+      const stored = localStorage.getItem('tims_user');
+      const token = localStorage.getItem('tims_token') || sessionStorage.getItem('tims_token');
+      if (stored && token) {
+        try {
+          const parsed = JSON.parse(stored);
+          setUser(parsed);
+          return parsed;
+        } catch {}
+      }
       localStorage.removeItem('tims_token');
+      localStorage.removeItem('tims_user');
       sessionStorage.removeItem('tims_token');
       setUser(null);
       return null;

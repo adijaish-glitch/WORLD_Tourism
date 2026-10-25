@@ -13,9 +13,12 @@ export default function CustomerDashboard() {
   const fetchBookings = () => {
     setLoading(true);
     bookingsAPI.list().then(res => {
-      setBookings(res.data.bookings);
+      setBookings(Array.isArray(res.data?.bookings) ? res.data.bookings : []);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch(() => {
+      setBookings([]);
+      setLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -47,7 +50,7 @@ export default function CustomerDashboard() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
           <h1>My Dashboard</h1>
-          <p>Welcome back, {user?.full_name}</p>
+          <p>Welcome back, {user?.full_name || 'Traveler'}</p>
         </div>
         <Link to="/packages" className="btn btn-primary">Book New Trip</Link>
       </div>
@@ -69,7 +72,7 @@ export default function CustomerDashboard() {
         
         {loading ? (
           <p className="text-muted">Loading bookings...</p>
-        ) : bookings.length === 0 ? (
+        ) : (bookings || []).length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">✈️</div>
             <h3>No trips booked yet</h3>

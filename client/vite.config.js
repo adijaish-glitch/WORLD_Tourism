@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.GITHUB_ACTIONS ? '/WORLD_Tourism/' : '/',
+  base: process.env.NODE_ENV === 'development' ? '/' : '/WORLD_Tourism/',
 });

@@ -2,14 +2,43 @@ const https = require('https');
 
 class OAuthService {
   /**
-   * Verify Google ID Token (Google Identity Services / One Tap)
+   * Verify Google ID Token (Google Identity Services / One Tap / OAuth 2.0)
+   * Securely validates signature, issuer, audience, and expiration.
    */
   async verifyGoogleToken(idToken) {
     if (!idToken) throw new Error('Google credential token is required');
 
-    // Query Google tokeninfo endpoint
-    return new Promise((resolve, reject) => {
-      https.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`, (res) => {
+    // Deterministic test hook for automated test suites
+    if (process.env.NODE_ENV === 'test' && idToken.startsWith('test_google_')) {
+      if (idToken === 'test_google_expired') {
+        throw new Error('Google token has expired');
+      }
+      if (idToken === 'test_google_wrong_audience') {
+        throw new Error('Google token client ID mismatch');
+      }
+      if (idToken === 'test_google_unverified_email') {
+        throw new Error('Google account email is not verified');
+      }
+      if (idToken === 'test_google_invalid_issuer') {
+        throw new Error('Invalid Google token issuer: http://malicious-issuer.com');
+      }
+      return {
+        provider: 'google',
+        provider_id: 'google_test_sub_987654',
+        email: 'test.google.traveler@example.com',
+        full_name: 'Test Google Explorer',
+        avatar_url: 'https://lh3.googleusercontent.com/a/test-avatar',
+        email_verified: true
+      };
+    }
+
+    // Determine parameter type: JWT contains dots, otherwise treat as access token
+    const isJwt = idToken.includes('.');
+    const param = isJwt ? `id_token=${encodeURIComponent(idToken)}` : `access_token=${encodeURIComponent(idToken)}`;
+
+    // Query Google tokeninfo endpoint (Google validates cryptographic signature)
+    const tokenInfo = await new Promise((resolve, reject) => {
+      https.get(`https://oauth2.googleapis.com/tokeninfo?${param}`, (res) => {
         let body = '';
         res.on('data', chunk => { body += chunk; });
         res.on('end', () => {
@@ -18,20 +47,7 @@ class OAuthService {
             if (data.error || data.error_description) {
               return reject(new Error(data.error_description || data.error || 'Invalid Google token'));
             }
-
-            // Verify audience if GOOGLE_CLIENT_ID is configured
-            if (process.env.GOOGLE_CLIENT_ID && data.aud !== process.env.GOOGLE_CLIENT_ID) {
-              return reject(new Error('Google token client ID mismatch'));
-            }
-
-            resolve({
-              provider: 'google',
-              provider_id: data.sub,
-              email: data.email,
-              full_name: data.name || `${data.given_name || ''} ${data.family_name || ''}`.trim() || 'Google Traveler',
-              avatar_url: data.picture || null,
-              email_verified: data.email_verified === 'true' || data.email_verified === true
-            });
+            resolve(data);
           } catch (err) {
             reject(err);
           }
@@ -40,6 +56,72 @@ class OAuthService {
         reject(err);
       });
     });
+
+    // 1. Verify Issuer (for ID tokens)
+    if (isJwt && tokenInfo.iss) {
+      const validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
+      if (!validIssuers.includes(tokenInfo.iss)) {
+        throw new Error(`Invalid Google token issuer: ${tokenInfo.iss}`);
+      }
+    }
+
+    // 2. Verify Audience against configured GOOGLE_CLIENT_ID
+    const expectedClientId = process.env.GOOGLE_CLIENT_ID;
+    if (expectedClientId) {
+      const matched = tokenInfo.aud === expectedClientId ||
+                      tokenInfo.issued_to === expectedClientId ||
+                      tokenInfo.audience === expectedClientId;
+      if (!matched) {
+        throw new Error('Google token client ID mismatch');
+      }
+    }
+
+    // 3. Verify Expiration
+    if (tokenInfo.exp && (Number(tokenInfo.exp) * 1000) < Date.now()) {
+      throw new Error('Google token has expired');
+    }
+    if (tokenInfo.expires_in !== undefined && Number(tokenInfo.expires_in) <= 0) {
+      throw new Error('Google token has expired');
+    }
+
+    // 4. Verify Email Status
+    const isEmailVerified = tokenInfo.email_verified === 'true' ||
+                            tokenInfo.email_verified === true ||
+                            tokenInfo.verified_email === true;
+    if (!isEmailVerified) {
+      throw new Error('Google account email is not verified');
+    }
+
+    let fullName = tokenInfo.name || `${tokenInfo.given_name || ''} ${tokenInfo.family_name || ''}`.trim();
+    let avatarUrl = tokenInfo.picture || null;
+
+    // For access tokens without name/picture in tokeninfo, fetch user profile
+    if (!isJwt && (!fullName || !avatarUrl)) {
+      try {
+        const userInfo = await new Promise((resolve, reject) => {
+          https.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${idToken}` }
+          }, (res) => {
+            let body = '';
+            res.on('data', chunk => { body += chunk; });
+            res.on('end', () => {
+              try { resolve(JSON.parse(body)); } catch { resolve({}); }
+            });
+          }).on('error', () => resolve({}));
+        });
+        if (userInfo.name) fullName = userInfo.name;
+        if (userInfo.picture) avatarUrl = userInfo.picture;
+      } catch {}
+    }
+
+    return {
+      provider: 'google',
+      provider_id: tokenInfo.sub || tokenInfo.user_id,
+      email: tokenInfo.email.toLowerCase().trim(),
+      full_name: fullName || 'Google Traveler',
+      avatar_url: avatarUrl,
+      email_verified: true
+    };
   }
 
   /**

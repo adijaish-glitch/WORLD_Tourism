@@ -256,7 +256,7 @@ export function LoginPage() {
     }
   };
 
-  // Google Sign-In (Firebase Authentication)
+  // Google Sign-In via Google Identity Services / Cloud Console OAuth 2.0
   const handleGoogle = async () => {
     setLoading(true);
     setFormError('');
@@ -268,23 +268,21 @@ export function LoginPage() {
           client_id: googleClientId,
           scope: 'email profile openid',
           callback: async (tokenResponse) => {
+            if (tokenResponse?.error) {
+              setFormError(`Google sign-in error: ${tokenResponse.error}`);
+              setLoading(false);
+              return;
+            }
             if (tokenResponse && tokenResponse.access_token) {
               try {
-                const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                });
-                const gProfile = await gRes.json();
-                const user = await socialLogin({
-                  provider: 'google',
-                  provider_id: gProfile.sub,
-                  email: gProfile.email,
-                  full_name: gProfile.name,
-                  avatar_url: gProfile.picture
-                });
-                success('Welcome, ' + (user.full_name || 'Traveler') + '!');
+                // Send verified Google token directly to backend for cryptographic verification
+                const user = await oauthGoogle(tokenResponse.access_token, rememberMe);
+                success('Welcome back, ' + (user.full_name || 'Traveler') + '!');
                 navigate(user.role === 'admin' ? '/admin' : '/dashboard');
               } catch (gErr) {
-                setFormError('Failed to fetch Google profile: ' + (gErr.message || ''));
+                const errMsg = gErr.response?.data?.error || gErr.message || 'Google authentication failed';
+                setFormError(errMsg);
+                error(errMsg);
               } finally {
                 setLoading(false);
               }
@@ -297,7 +295,7 @@ export function LoginPage() {
         return;
       }
 
-      // 2. Firebase Authentication with Google Popup
+      // 2. Firebase Authentication with Google Popup fallback
       if (isFirebaseConfigured() && auth) {
         const result = await signInWithPopup(auth, googleProvider);
         const idToken = await result.user.getIdToken();
@@ -305,16 +303,7 @@ export function LoginPage() {
         success('Welcome, ' + (user.full_name || 'Traveler') + '!');
         navigate(user.role === 'admin' ? '/admin' : '/dashboard');
       } else {
-        // Fallback for development before Google credentials are added
-        const user = await socialLogin({
-          provider: 'google',
-          provider_id: `google_${Date.now()}`,
-          email: 'google.traveler@example.com',
-          full_name: 'Google Traveler',
-          avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=google'
-        });
-        success('Signed in with Google!');
-        navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+        setFormError('Google Client ID is not configured. Please set VITE_GOOGLE_CLIENT_ID in your environment.');
       }
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
@@ -405,12 +394,23 @@ export function LoginPage() {
             </div>
           )}
 
-          {/* Social Sign-in Buttons */}
-          <div className="social-grid">
-            <button type="button" className="social-btn" onClick={handleGoogle} disabled={loading} title="Sign in with Google">
+          {/* Professional Continue with Google Button */}
+          <button
+            type="button"
+            className="google-continue-btn"
+            onClick={handleGoogle}
+            disabled={loading}
+            id="google-continue-btn"
+            title="Continue with Google"
+          >
+            <div className="google-icon-wrapper">
               <GoogleIcon />
-              <span>Google</span>
-            </button>
+            </div>
+            <span className="google-btn-text">{loading ? 'Connecting to Google...' : 'Continue with Google'}</span>
+          </button>
+
+          {/* Alternative Social Sign-in Buttons */}
+          <div className="social-grid">
             <button type="button" className="social-btn" onClick={handleApple} disabled={loading} title="Sign in with Apple">
               <AppleIcon />
               <span>Apple</span>
@@ -639,7 +639,7 @@ export function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const { register, socialLogin } = useAuth();
+  const { register, oauthGoogle, socialLogin } = useAuth();
   const { success, error } = useToast();
   const navigate = useNavigate();
 
@@ -692,6 +692,66 @@ export function RegisterPage() {
     }
   };
 
+  // Google Sign-Up via Google Identity Services / Cloud Console OAuth 2.0
+  const handleGoogle = async () => {
+    setLoading(true);
+    setFormError('');
+    try {
+      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (googleClientId && window.google?.accounts?.oauth2) {
+        const client = window.google.accounts.oauth2.initTokenClient({
+          client_id: googleClientId,
+          scope: 'email profile openid',
+          callback: async (tokenResponse) => {
+            if (tokenResponse?.error) {
+              setFormError(`Google registration error: ${tokenResponse.error}`);
+              setLoading(false);
+              return;
+            }
+            if (tokenResponse && tokenResponse.access_token) {
+              try {
+                // Send verified token to backend for cryptographically verified registration
+                const user = await oauthGoogle(tokenResponse.access_token, true);
+                success('Account created with Google! Welcome, ' + (user.full_name || 'Traveler') + '!');
+                navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+              } catch (gErr) {
+                const errMsg = gErr.response?.data?.error || gErr.message || 'Google registration failed';
+                setFormError(errMsg);
+                error(errMsg);
+              } finally {
+                setLoading(false);
+              }
+            } else {
+              setLoading(false);
+            }
+          }
+        });
+        client.requestAccessToken();
+        return;
+      }
+
+      if (isFirebaseConfigured() && auth) {
+        const result = await signInWithPopup(auth, googleProvider);
+        const idToken = await result.user.getIdToken();
+        const user = await loginWithFirebase(idToken, true);
+        success('Account created with Google! Welcome, ' + (user.full_name || 'Traveler') + '!');
+        navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+        return;
+      }
+
+      setFormError('Google Client ID is not configured. Please set VITE_GOOGLE_CLIENT_ID in your environment.');
+    } catch (err) {
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        // User closed popup
+      } else {
+        setFormError(err.message || 'Google registration failed');
+        error(err.message || 'Google registration failed');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSocial = async (provider) => {
     setLoading(true);
     try {
@@ -732,17 +792,28 @@ export function RegisterPage() {
             </div>
           )}
 
-          {/* Social Sign up */}
-          <div className="social-grid">
-            <button type="button" className="social-btn" onClick={() => handleSocial('google')} disabled={loading}>
+          {/* Professional Continue with Google Button */}
+          <button
+            type="button"
+            className="google-continue-btn"
+            onClick={handleGoogle}
+            disabled={loading}
+            id="google-register-btn"
+            title="Continue with Google"
+          >
+            <div className="google-icon-wrapper">
               <GoogleIcon />
-              <span>Google</span>
-            </button>
-            <button type="button" className="social-btn" onClick={() => handleSocial('apple')} disabled={loading}>
+            </div>
+            <span className="google-btn-text">{loading ? 'Connecting to Google...' : 'Continue with Google'}</span>
+          </button>
+
+          {/* Alternative Social Sign up */}
+          <div className="social-grid">
+            <button type="button" className="social-btn" onClick={() => handleSocial('apple')} disabled={loading} title="Sign up with Apple">
               <AppleIcon />
               <span>Apple</span>
             </button>
-            <button type="button" className="social-btn" onClick={() => handleSocial('github')} disabled={loading}>
+            <button type="button" className="social-btn" onClick={() => handleSocial('github')} disabled={loading} title="Sign up with GitHub">
               <GitHubIcon />
               <span>GitHub</span>
             </button>

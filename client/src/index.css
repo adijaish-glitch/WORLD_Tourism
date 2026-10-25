@@ -394,7 +394,21 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 400; letter-spacing: -
   background: transparent !important; border: none !important; border-bottom: 1px dashed #d1cabe !important; border-radius: 0 !important; box-shadow: none !important; padding-left: 0 !important; font-family: 'Courier New', Courier, monospace; font-weight: 600; font-size: 1rem; color: #111;
 }
 .receipt-input:focus { border-bottom: 1px solid #111 !important; outline: none; }
+.receipt-select {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px dashed #d1cabe !important;
+  border-radius: 0 !important;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #111;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.receipt-select:focus { border-bottom: 1px solid #111 !important; outline: none; }
 .receipt-label { font-family: 'Courier New', Courier, monospace; text-transform: uppercase; font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 0.25rem; display: block; }
+
 .receipt-btn { background: #111 !important; color: #fff !important; font-family: 'Courier New', Courier, monospace; text-transform: uppercase; letter-spacing: 2px; border-radius: 0 !important; box-shadow: none !important; width: 100%; padding: 0.9rem !important; transition: all 0.2s; margin-top: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; }
 .receipt-btn:hover:not(:disabled) { background: #000 !important; transform: translateY(-1px); }
 .receipt-btn:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -628,4 +642,71 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 400; letter-spacing: -
   height: 14px;
   cursor: pointer;
 }
+
+/* ─── Auth Mode Tabs (Email vs Phone OTP) ─── */
+.auth-mode-tabs {
+  display: flex;
+  background: #ece8df;
+  border-radius: 4px;
+  padding: 3px;
+  margin-bottom: 1.25rem;
+  font-family: 'Courier New', Courier, monospace;
+}
+.auth-mode-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #71717a;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  letter-spacing: 1px;
+}
+.auth-mode-tab.active {
+  background: #ffffff;
+  color: #09090b;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.auth-phone-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.auth-phone-input {
+  flex: 1;
+}
+.auth-resend-btn {
+  background: #18181b;
+  color: #ffffff;
+  border: none;
+  padding: 8px 12px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.auth-resend-btn:disabled {
+  background: #a1a1aa;
+  cursor: not-allowed;
+}
+.auth-otp-badge {
+  display: inline-block;
+  background: #fef08a;
+  color: #854d0e;
+  border: 1px solid #facc15;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.75rem;
+  margin-top: 6px;
+}
+
 

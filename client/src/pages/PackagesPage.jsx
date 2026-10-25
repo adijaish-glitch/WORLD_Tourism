@@ -7,48 +7,62 @@ export default function PackagesPage() {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const search = searchParams.get('search') || '';
   const minPrice = searchParams.get('min_price') || '';
   const maxPrice = searchParams.get('max_price') || '';
 
   useEffect(() => {
     setLoading(true);
-    packagesAPI.list({ min_price: minPrice, max_price: maxPrice }).then(res => {
+    packagesAPI.list({ search, min_price: minPrice, max_price: maxPrice, limit: 100 }).then(res => {
       setPackages(res.data.packages);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [minPrice, maxPrice]);
+  }, [search, minPrice, maxPrice]);
 
   return (
     <div className="page container">
       <div className="page-header text-center">
         <h1>Tour Packages</h1>
-        <p>Curated experiences for every traveler.</p>
+        <p>Curated global experiences across all destinations.</p>
       </div>
 
-      <div className="filter-bar" style={{ justifyContent: 'center' }}>
+      <div className="filter-bar" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
         <input 
-          type="number" 
+          type="text" 
           className="input" 
-          placeholder="Min Price ($)" 
-          value={minPrice}
+          placeholder="Search by package, destination, or country..." 
+          value={search}
           onChange={e => setSearchParams(prev => { 
-            if(e.target.value) prev.set('min_price', e.target.value); else prev.delete('min_price');
+            if(e.target.value) prev.set('search', e.target.value); else prev.delete('search');
             return prev; 
           })}
-          style={{ width: 150 }}
+          style={{ minWidth: 280, flex: 1, maxWidth: 400 }}
         />
-        <span style={{ color: 'var(--text-muted)' }}>—</span>
-        <input 
-          type="number" 
-          className="input" 
-          placeholder="Max Price ($)" 
-          value={maxPrice}
-          onChange={e => setSearchParams(prev => { 
-            if(e.target.value) prev.set('max_price', e.target.value); else prev.delete('max_price');
-            return prev; 
-          })}
-          style={{ width: 150 }}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <input 
+            type="number" 
+            className="input" 
+            placeholder="Min Price ($)" 
+            value={minPrice}
+            onChange={e => setSearchParams(prev => { 
+              if(e.target.value) prev.set('min_price', e.target.value); else prev.delete('min_price');
+              return prev; 
+            })}
+            style={{ width: 130 }}
+          />
+          <span style={{ color: 'var(--text-muted)' }}>—</span>
+          <input 
+            type="number" 
+            className="input" 
+            placeholder="Max Price ($)" 
+            value={maxPrice}
+            onChange={e => setSearchParams(prev => { 
+              if(e.target.value) prev.set('max_price', e.target.value); else prev.delete('max_price');
+              return prev; 
+            })}
+            style={{ width: 130 }}
+          />
+        </div>
       </div>
 
       {loading ? (
@@ -77,7 +91,7 @@ export default function PackagesPage() {
                   <div className="badge badge-standard">{p.duration_days} Days</div>
                 </div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: 600, marginBottom: 'var(--space-sm)' }}>
-                  📍 {p.dest_name}
+                  📍 {p.dest_name}{p.dest_country ? ` • ${p.dest_country}` : ''}
                 </div>
                 <p className="card-text" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 'var(--space-md)' }}>
                   {p.description}

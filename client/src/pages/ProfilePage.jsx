@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../features/auth/AuthContext';
 import { authAPI } from '../api/client';
 import { useToast } from '../components/ui/ToastContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
+  const navigate = useNavigate();
   const { success, error } = useToast();
 
   const avatarPresets = ['🏔️', '🌴', '🎒', '🧭', '✈️', '🗺️', '⛵', '🏨'];
@@ -113,11 +114,38 @@ export default function ProfilePage() {
               </span>
             </div>
           </div>
-          {!user?.email_verified && (
-            <Link to={`/verify-email?email=${encodeURIComponent(user?.email || '')}`} className="btn btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}>
-              Verify Now
-            </Link>
-          )}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {!user?.email_verified && (
+              <Link to={`/verify-email?email=${encodeURIComponent(user?.email || '')}`} className="btn btn-primary" style={{ fontSize: '0.8rem', padding: '0.45rem 1rem' }}>
+                Verify Now
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={async () => {
+                await logout();
+                navigate('/login');
+              }}
+              className="btn btn-outline"
+              style={{
+                fontSize: '0.8rem',
+                padding: '0.45rem 1rem',
+                borderColor: '#fca5a5',
+                color: '#dc2626',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              title="Sign out of account"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Logout
+            </button>
+          </div>
         </div>
       </div>
 

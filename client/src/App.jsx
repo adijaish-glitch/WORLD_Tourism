@@ -24,6 +24,8 @@ import NotFoundPage from './pages/NotFoundPage';
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from './features/auth/AuthPages';
 
 import ExploreMapPage from './pages/ExploreMapPage';
+import CountriesPage from './pages/CountriesPage';
+import CountryDetailPage from './pages/CountryDetailPage';
 
 // Private Route Components
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -77,16 +79,22 @@ export default function App() {
     );
   }
 
+  const basename = window.location.pathname.startsWith('/WORLD_Tourism')
+    ? '/WORLD_Tourism'
+    : (import.meta.env.BASE_URL === '/WORLD_Tourism/' ? '/' : (import.meta.env.BASE_URL || '/'));
+
   return (
     <AuthProvider>
       <ToastProvider>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <BrowserRouter basename={basename}>
           <ScrollToTop />
           <Navbar />
           <PageWrapper>
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/explore" element={<ExploreMapPage />} />
+              <Route path="/countries" element={<CountriesPage />} />
+              <Route path="/countries/:code" element={<CountryDetailPage />} />
               <Route path="/destinations" element={<DestinationsPage />} />
               <Route path="/destinations/:id" element={<DestinationDetailPage />} />
               <Route path="/packages" element={<PackagesPage />} />

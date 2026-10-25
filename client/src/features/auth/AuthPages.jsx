@@ -2,6 +2,20 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { useToast } from '../../components/ui/ToastContext';
+import { auth, googleProvider, isFirebaseConfigured } from '../../config/firebase';
+import { signInWithPopup, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
+
+const COUNTRY_CODES = [
+  { code: '+91', label: '🇮🇳 India (+91)' },
+  { code: '+1', label: '🇺🇸 US (+1)' },
+  { code: '+44', label: '🇬🇧 UK (+44)' },
+  { code: '+971', label: '🇦🇪 UAE (+971)' },
+  { code: '+65', label: '🇸🇬 Singapore (+65)' },
+  { code: '+61', label: '🇦🇺 Australia (+61)' },
+  { code: '+49', label: '🇩🇪 Germany (+49)' },
+  { code: '+33', label: '🇫🇷 France (+33)' },
+  { code: '+81', label: '🇯🇵 Japan (+81)' },
+];
 
 // ─── SVG Icons ───
 const GoogleIcon = () => (
@@ -60,20 +74,65 @@ function evaluatePassword(pwd) {
   return { score: 100, label: 'Strong', color: '#10b981', rules };
 }
 
-// ─── 1. LOGIN PAGE ───
+// ─── 1. LOGIN PAGE (Email + Password OR Phone OTP via SMS) ───
 export function LoginPage() {
+  const [authMode, setAuthMode] = useState('email'); // 'email' | 'phone'
+
+  // Email form state
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
+  // Phone form state
+  const [countryCode, setCountryCode] = useState('+91'); // Default to India (+91)
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(0);
+  const [otpAttempts, setOtpAttempts] = useState(0);
+  const [devOtpCode, setDevOtpCode] = useState('');
+  const [passengerName, setPassengerName] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const { login, socialLogin, guestLogin } = useAuth();
+  const {
+    login,
+    sendPhoneOtp,
+    verifyPhoneOtp,
+    loginWithFirebase,
+    oauthGoogle,
+    oauthApple,
+    socialLogin,
+    guestLogin
+  } = useAuth();
   const { success, error } = useToast();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  // Clean up reCAPTCHA verifier on unmount
+  useEffect(() => {
+    return () => {
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+          window.recaptchaVerifier = null;
+        } catch {}
+      }
+    };
+  }, []);
+
+  // Countdown timer for OTP resend
+  useEffect(() => {
+    if (otpTimer > 0) {
+      const interval = setInterval(() => setOtpTimer((t) => t - 1), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [otpTimer]);
+
+  // Email Submit
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
     if (!identifier || !password) {
@@ -94,27 +153,188 @@ export function LoginPage() {
     }
   };
 
-  const handleSocial = async (provider) => {
-    setLoading(true);
+  // Phone: Send OTP (Firebase with India +91 default)
+  const handleSendOtp = async () => {
     setFormError('');
+    const cleanDigits = phone.replace(/[^\d]/g, '');
+    if (!cleanDigits || cleanDigits.length < 7) {
+      setFormError('Please enter a valid mobile number');
+      return;
+    }
+
+    const fullPhoneNumber = `${countryCode}${cleanDigits.replace(/^0+/, '')}`;
+
+    setLoading(true);
     try {
-      const mockSocial = {
-        provider,
-        provider_id: `${provider}_${Date.now()}`,
-        email: `${provider}.traveler@example.com`,
-        full_name: `${provider.charAt(0).toUpperCase() + provider.slice(1)} Traveler`,
-        avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${provider}`
-      };
-      const user = await socialLogin(mockSocial);
-      success(`Signed in with ${provider}!`);
-      navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+      // 1. Try Firebase Authentication with SMS and reCAPTCHA if configured
+      if (isFirebaseConfigured() && auth) {
+        if (!window.recaptchaVerifier) {
+          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible',
+            callback: () => {},
+            'expired-callback': () => {
+              setFormError('reCAPTCHA expired. Please try sending OTP again.');
+            }
+          });
+        }
+
+        const confirmation = await signInWithPhoneNumber(auth, fullPhoneNumber, window.recaptchaVerifier);
+        setConfirmationResult(confirmation);
+        setOtpSent(true);
+        setOtpTimer(60);
+        setOtpAttempts(0);
+        success(`SMS OTP sent via Firebase to ${fullPhoneNumber}!`);
+      } else {
+        // Fallback to server SMS service
+        const res = await sendPhoneOtp(fullPhoneNumber);
+        setOtpSent(true);
+        setOtpTimer(30);
+        if (res.devCode) {
+          setDevOtpCode(res.devCode);
+          setOtp(res.devCode);
+        }
+        success(res.message || `Verification code dispatched to ${fullPhoneNumber}!`);
+      }
     } catch (err) {
-      setFormError(err.response?.data?.error || `Failed to sign in with ${provider}`);
+      console.error('Send OTP error:', err);
+      if (window.recaptchaVerifier) {
+        try { window.recaptchaVerifier.clear(); window.recaptchaVerifier = null; } catch {}
+      }
+      const msg = err.code === 'auth/too-many-requests'
+        ? 'Too many SMS attempts. Please wait a few minutes before trying again.'
+        : (err.code === 'auth/invalid-phone-number'
+          ? 'Invalid phone number format. Please check your country code and digits.'
+          : (err.message || 'Failed to dispatch verification code'));
+      setFormError(msg);
+      error(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  // Phone: Verify 6-digit OTP
+  const handlePhoneSubmit = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    if (!otp || otp.length < 6) {
+      setFormError('Please enter the 6-digit verification code');
+      return;
+    }
+
+    if (otpAttempts >= 4) {
+      setFormError('Too many incorrect attempts. Please request a new code.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. If Firebase confirmation result is active
+      if (confirmationResult) {
+        const userCredential = await confirmationResult.confirm(otp);
+        const idToken = await userCredential.user.getIdToken();
+        const user = await loginWithFirebase(idToken, rememberMe);
+        success('Phone verified! Welcome aboard, ' + (user.full_name || 'Passenger') + '!');
+        navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+      } else {
+        // Fallback to server verify
+        const fullPhoneNumber = `${countryCode}${phone.replace(/[^\d]/g, '').replace(/^0+/, '')}`;
+        const user = await verifyPhoneOtp(fullPhoneNumber, otp, passengerName, rememberMe);
+        success('Verified! Welcome back, ' + (user.full_name || 'Passenger') + '!');
+        navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+      }
+    } catch (err) {
+      setOtpAttempts(prev => prev + 1);
+      const msg = err.code === 'auth/invalid-verification-code'
+        ? 'Invalid 6-digit code. Please verify the numbers and try again.'
+        : (err.code === 'auth/code-expired'
+          ? 'Verification code has expired. Please request a new one.'
+          : (err.response?.data?.error || err.message || 'Verification failed'));
+      setFormError(msg);
+      error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Google Sign-In (Firebase Authentication)
+  const handleGoogle = async () => {
+    setLoading(true);
+    setFormError('');
+    try {
+      if (isFirebaseConfigured() && auth) {
+        const result = await signInWithPopup(auth, googleProvider);
+        const idToken = await result.user.getIdToken();
+        const user = await loginWithFirebase(idToken, true);
+        success('Welcome, ' + (user.full_name || 'Traveler') + '!');
+        navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+      } else {
+        // Fallback for development before Firebase keys are added to client/.env
+        const user = await socialLogin({
+          provider: 'google',
+          provider_id: `google_${Date.now()}`,
+          email: 'google.traveler@example.com',
+          full_name: 'Google Traveler',
+          avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=google'
+        });
+        success('Signed in with Google!');
+        navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+      }
+    } catch (err) {
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        // User closed the popup, silently reset
+      } else {
+        setFormError(err.message || 'Google sign-in failed');
+        error(err.message || 'Google sign-in failed');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Apple Sign-In
+  const handleApple = async () => {
+    setLoading(true);
+    setFormError('');
+    try {
+      const user = await socialLogin({
+        provider: 'apple',
+        provider_id: `apple_${Date.now()}`,
+        email: 'apple.traveler@example.com',
+        full_name: 'Apple Traveler',
+        avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=apple'
+      });
+      success('Signed in with Apple!');
+      navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+    } catch (err) {
+      setFormError(err.response?.data?.error || 'Apple sign-in failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // GitHub Sign-In
+  const handleGitHub = async () => {
+    setLoading(true);
+    setFormError('');
+    try {
+      const user = await socialLogin({
+        provider: 'github',
+        provider_id: `github_${Date.now()}`,
+        email: 'github.traveler@example.com',
+        full_name: 'GitHub Traveler',
+        avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=github'
+      });
+      success('Signed in with GitHub!');
+      navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+    } catch (err) {
+      setFormError(err.response?.data?.error || 'GitHub sign-in failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Guest Pass
   const handleGuest = async () => {
     setLoading(true);
     try {
@@ -150,15 +370,15 @@ export function LoginPage() {
 
           {/* Social Sign-in Buttons */}
           <div className="social-grid">
-            <button type="button" className="social-btn" onClick={() => handleSocial('google')} disabled={loading}>
+            <button type="button" className="social-btn" onClick={handleGoogle} disabled={loading} title="Sign in with Google">
               <GoogleIcon />
               <span>Google</span>
             </button>
-            <button type="button" className="social-btn" onClick={() => handleSocial('apple')} disabled={loading}>
+            <button type="button" className="social-btn" onClick={handleApple} disabled={loading} title="Sign in with Apple">
               <AppleIcon />
               <span>Apple</span>
             </button>
-            <button type="button" className="social-btn" onClick={() => handleSocial('github')} disabled={loading}>
+            <button type="button" className="social-btn" onClick={handleGitHub} disabled={loading} title="Sign in with GitHub">
               <GitHubIcon />
               <span>GitHub</span>
             </button>
@@ -169,67 +389,192 @@ export function LoginPage() {
           </button>
 
           <div className="auth-divider">
-            <span>Or continue with email</span>
+            <span>Or Choose Sign-In Mode</span>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="receipt-label">Email Address or Username</label>
-              <input
-                type="text"
-                className="input receipt-input"
-                placeholder="name@example.com or traveler"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
+          {/* Mode Switcher Tabs */}
+          <div className="auth-mode-tabs">
+            <button
+              type="button"
+              className={`auth-mode-tab ${authMode === 'email' ? 'active' : ''}`}
+              onClick={() => { setAuthMode('email'); setFormError(''); }}
+            >
+              ✉️ Email Access
+            </button>
+            <button
+              type="button"
+              className={`auth-mode-tab ${authMode === 'phone' ? 'active' : ''}`}
+              onClick={() => { setAuthMode('phone'); setFormError(''); }}
+            >
+              📱 Phone SMS OTP
+            </button>
+          </div>
 
-            <div className="form-group">
-              <label className="receipt-label">Password</label>
-              <div className="auth-input-wrapper">
+          {/* MODE 1: EMAIL & PASSWORD */}
+          {authMode === 'email' && (
+            <form onSubmit={handleEmailSubmit}>
+              <div className="form-group">
+                <label className="receipt-label">Email Address or Username</label>
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type="text"
                   className="input receipt-input"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="name@example.com or traveler"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   required
                   disabled={loading}
                 />
-                <button
-                  type="button"
-                  className="auth-eye-btn"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  <EyeIcon off={showPassword} />
-                </button>
               </div>
-            </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="auth-checkbox-row">
-              <label className="auth-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <span>Remember me</span>
-              </label>
-              <Link to="/forgot-password" style={{ color: '#09090b', textDecoration: 'underline', fontSize: '0.8rem' }}>
-                Forgot password?
-              </Link>
-            </div>
+              <div className="form-group">
+                <label className="receipt-label">Password</label>
+                <div className="auth-input-wrapper">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    className="input receipt-input"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    className="auth-eye-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    <EyeIcon off={showPassword} />
+                  </button>
+                </div>
+              </div>
 
-            <button type="submit" className="btn receipt-btn" disabled={loading}>
-              {loading ? 'Authenticating...' : 'Sign In →'}
-            </button>
+              {/* Remember Me & Forgot Password */}
+              <div className="auth-checkbox-row">
+                <label className="auth-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <span>Remember me (30d)</span>
+                </label>
+                <Link to="/forgot-password" style={{ color: '#09090b', textDecoration: 'underline', fontSize: '0.8rem' }}>
+                  Forgot key?
+                </Link>
+              </div>
 
-            <div className="receipt-barcode"></div>
-          </form>
+              <button type="submit" className="btn receipt-btn" disabled={loading}>
+                {loading ? 'Authenticating...' : 'Sign In & Board →'}
+              </button>
+
+              <div className="receipt-barcode"></div>
+            </form>
+          )}
+
+          {/* MODE 2: PHONE OTP VIA SMS */}
+          {authMode === 'phone' && (
+            <form onSubmit={handlePhoneSubmit}>
+              <div className="form-group">
+                <label className="receipt-label">Mobile Phone Number</label>
+                <div className="auth-phone-row" style={{ display: 'flex', gap: '8px' }}>
+                  <select
+                    className="input receipt-input receipt-select"
+                    style={{ width: '135px', flexShrink: 0, padding: '0.45rem 0.5rem', cursor: 'pointer', fontFamily: 'monospace' }}
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    disabled={loading || otpSent}
+                    aria-label="Country Code"
+                  >
+                    {COUNTRY_CODES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="auth-phone-input" style={{ flex: 1 }}>
+                    <input
+                      type="tel"
+                      className="input receipt-input"
+                      placeholder="98765 43210"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                      disabled={loading || otpSent}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="auth-resend-btn"
+                    onClick={handleSendOtp}
+                    disabled={loading || otpTimer > 0 || !phone}
+                  >
+                    {otpTimer > 0 ? `${otpTimer}s` : otpSent ? 'Resend' : 'Send Code'}
+                  </button>
+                </div>
+                {/* Firebase reCAPTCHA container */}
+                <div id="recaptcha-container"></div>
+              </div>
+
+              {otpSent && (
+                <>
+                  <div className="form-group">
+                    <label className="receipt-label">6-Digit SMS Code</label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      className="input receipt-input"
+                      placeholder="123456"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                      required
+                      disabled={loading}
+                      style={{ letterSpacing: '4px', fontSize: '1.2rem', textAlign: 'center' }}
+                    />
+                    {devOtpCode && (
+                      <div style={{ marginTop: '8px' }}>
+                        <div className="auth-otp-badge">
+                          ⚡ Dev Mode SMS Code: <strong>{devOtpCode}</strong>
+                        </div>
+                        <p style={{ fontSize: '0.72rem', color: '#71717a', marginTop: '4px', fontFamily: 'Courier New, monospace' }}>
+                          ℹ️ Twilio credentials not configured in server/.env yet — your code is simulated above and in server terminal. Enter it to verify!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="receipt-label">Passenger Name (Optional)</label>
+                    <input
+                      type="text"
+                      className="input receipt-input"
+                      placeholder="Jane Traveler"
+                      value={passengerName}
+                      onChange={(e) => setPassengerName(e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="auth-checkbox-row">
+                    <label className="auth-checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      <span>Keep active session (30d)</span>
+                    </label>
+                  </div>
+
+                  <button type="submit" className="btn receipt-btn" disabled={loading || otp.length < 6}>
+                    {loading ? 'Verifying Code...' : 'Verify OTP & Board →'}
+                  </button>
+                </>
+              )}
+
+              <div className="receipt-barcode"></div>
+            </form>
+          )}
 
           <p style={{ textAlign: 'center', marginTop: '1.25rem', color: '#71717a', fontSize: '0.85rem', fontFamily: 'Courier New, monospace' }}>
             Don't have an account? <Link to="/register" style={{ fontWeight: 'bold', color: '#09090b' }}>Create account</Link>
@@ -246,6 +591,7 @@ export function RegisterPage() {
     fullName: '',
     username: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
     avatarUrl: '🏔️',
@@ -290,14 +636,15 @@ export function RegisterPage() {
 
     setLoading(true);
     try {
-      const res = await register({
+      await register({
         full_name: formData.fullName,
         username: formData.username || undefined,
         email: formData.email,
+        phone: formData.phone || undefined,
         password: formData.password,
         avatar_url: formData.avatarUrl
       });
-      success('Account created! Welcome to TIMS.');
+      success('Account created! A confirmation email has been dispatched.');
       navigate('/dashboard');
     } catch (err) {
       const msg = err.response?.data?.error || 'Registration failed';
@@ -420,6 +767,18 @@ export function RegisterPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="receipt-label">Phone Number (SMS OTP)</label>
+              <input
+                type="tel"
+                className="input receipt-input"
+                placeholder="+1 (555) 019-2834"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 disabled={loading}
               />
             </div>

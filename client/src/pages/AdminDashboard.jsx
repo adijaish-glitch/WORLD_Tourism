@@ -91,6 +91,7 @@ export default function AdminDashboard() {
             {[
               { icon: '💰', label: 'Total Revenue', value: '$' + stats.total_revenue.toLocaleString() },
               { icon: '✈️', label: 'Active Bookings', value: stats.active_bookings },
+              { icon: '🌐', label: 'Countries Catalogued', value: stats.total_countries || 250 },
               { icon: '🌍', label: 'Destinations', value: stats.total_destinations },
               { icon: '👥', label: 'Total Users', value: stats.total_users }
             ].map((s, i) => (

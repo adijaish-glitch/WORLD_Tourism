@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { destinationsAPI } from '../api/client';
-import axios from 'axios';
+import { destinationsAPI, countriesAPI } from '../api/client';
 
 export default function DestinationDetailPage() {
   const { id } = useParams();
@@ -13,13 +12,15 @@ export default function DestinationDetailPage() {
     destinationsAPI.getById(id).then(async res => {
       setData(res.data);
       
-      // Fetch live country facts
+      // Fetch country facts reliably from local countriesAPI
       try {
-        const cRes = await axios.get(`https://restcountries.com/v3.1/name/${res.data.destination.country}?fullText=true`);
-        if (cRes.data && cRes.data[0]) {
-          setCountryData(cRes.data[0]);
+        const cRes = await countriesAPI.getByCode(res.data.destination.country);
+        if (cRes.data && cRes.data.country) {
+          setCountryData(cRes.data.country);
         }
-      } catch (e) { console.error('Fact fetch failed'); }
+      } catch (e) {
+        console.error('Country fetch error', e);
+      }
       
       setLoading(false);
     }).catch(err => {
@@ -139,24 +140,41 @@ export default function DestinationDetailPage() {
                 {countryData && (
                   <>
                     <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: 'var(--space-md)' }}>
-                      <div className="label">Capital</div>
-                      <div style={{ fontWeight: 600 }}>{countryData.capital?.[0] || 'N/A'}</div>
+                      <div className="label">Capital City</div>
+                      <div style={{ fontWeight: 600 }}>{countryData.capital || 'N/A'}</div>
                     </div>
                     <div>
                       <div className="label">Population</div>
-                      <div style={{ fontWeight: 600 }}>{countryData.population?.toLocaleString() || 'N/A'}</div>
+                      <div style={{ fontWeight: 600 }}>{countryData.population ? Number(countryData.population).toLocaleString() : 'N/A'}</div>
                     </div>
                     <div>
                       <div className="label">Language</div>
-                      <div style={{ fontWeight: 600 }}>{Object.values(countryData.languages || {})[0] || 'N/A'}</div>
+                      <div style={{ fontWeight: 600 }}>{countryData.languages || 'N/A'}</div>
                     </div>
                     <div>
                       <div className="label">Currency</div>
                       <div style={{ fontWeight: 600 }}>
-                        {Object.values(countryData.currencies || {})[0]?.name || 'N/A'} 
-                        ({Object.values(countryData.currencies || {})[0]?.symbol})
+                        {countryData.currencies || 'N/A'}
                       </div>
                     </div>
+                    {countryData.code && (
+                      <div style={{ paddingTop: 'var(--space-xs)' }}>
+                        <Link
+                          to={`/countries/${countryData.code.toLowerCase()}`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: 'var(--accent-primary)',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            textDecoration: 'none'
+                          }}
+                        >
+                          {countryData.flag_emoji} Explore {countryData.name} Guide →
+                        </Link>
+                      </div>
+                    )}
                   </>
                 )}
                 

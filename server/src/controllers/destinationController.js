@@ -13,10 +13,11 @@ function queryOne(sql, params = []) { return queryAll(sql, params)[0] || null; }
 function run(sql, params = []) { getDb().run(sql, params); saveDb(); }
 
 exports.list = (req, res) => {
-  const { search, region, min_rating, page = 1, limit = 12 } = req.query;
+  const { search, region, category, min_rating, page = 1, limit = 12 } = req.query;
   let where = [], params = [];
   if (search) { where.push("(d.name LIKE ? OR d.country LIKE ?)"); params.push(`%${search}%`, `%${search}%`); }
   if (region) { where.push("d.region = ?"); params.push(region); }
+  if (category) { where.push("(LOWER(d.category) = LOWER(?) OR LOWER(d.description) LIKE LOWER(?))"); params.push(category, `%${category}%`); }
   if (min_rating) { where.push("d.rating >= ?"); params.push(Number(min_rating)); }
   const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
   const total = queryOne(`SELECT COUNT(*) as count FROM destinations d ${whereClause}`, params)?.count || 0;

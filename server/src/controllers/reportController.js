@@ -13,6 +13,7 @@ function queryOne(sql, params = []) { return queryAll(sql, params)[0] || null; }
 
 exports.summary = (req, res) => {
   const stats = {
+    total_countries: queryOne('SELECT COUNT(*) as c FROM countries')?.c || 0,
     total_destinations: queryOne('SELECT COUNT(*) as c FROM destinations')?.c || 0,
     total_hotels: queryOne('SELECT COUNT(*) as c FROM hotels')?.c || 0,
     total_packages: queryOne('SELECT COUNT(*) as c FROM packages WHERE is_active = 1')?.c || 0,

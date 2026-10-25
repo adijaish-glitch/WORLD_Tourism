@@ -9,10 +9,10 @@ export default function AboutPage() {
   ];
 
   const stats = [
+    { value: '250', label: 'Countries Catalogued' },
     { value: '50+', label: 'Destinations' },
     { value: '200+', label: 'Hotel Partners' },
     { value: '10K+', label: 'Happy Travelers' },
-    { value: '4.8★', label: 'Average Rating' },
   ];
 
   return (

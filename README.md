@@ -6,15 +6,19 @@ An enterprise-grade, full-stack travel booking and tourism management platform f
 
 ## 🚀 Key Features
 
-### 1. 🔐 Robust Authentication & Security
+### 1. 🔐 Enterprise Authentication & Session Security
+- **MongoDB User Profiles**: Seamless MongoDB Mongoose integration for storing user profiles, credentials, multi-provider identities, and active session tokens, combined with a synchronized SQL bridge for existing booking and review foreign keys.
 - **Multi-Identifier Login**: Sign in via email address or custom `@username`.
+- **Phone Number SMS OTP Login**: Real SMS OTP verification with Twilio integration, cryptographic 6-digit OTP generation, SHA-256 OTP hashing, attempt throttling, and development simulation support.
+- **Google & Apple Sign-In**: Identity token verification with profile linking for Google and Apple accounts.
+- **HttpOnly Cookie Sessions**: Secure session cookies (`HttpOnly`, `SameSite: 'lax'`, `Secure` in production) preventing XSS token theft, with persistent login across page refreshes.
+- **Session Invalidation & Logout**: Explicit session revocation upon logout, invalidating tokens across server memory and MongoDB.
 - **Credential Protection**: Secure password hashing with `bcrypt` (10 rounds).
+- **Single-Use Password Recovery**: Cryptographically random 64-character hex reset tokens with a 1-hour expiration window and email dispatch via Nodemailer/SMTP.
+- **Email Verification**: Token-based email verification flow with automated query param checking and resend cooldown timer.
+- **Brute-Force Protection**: IP rate-limiting on sensitive auth routes (`express-rate-limit`).
 - **Interactive UI**: Password show/hide eye toggles, "Remember Me" extended sessions (30 days), and loading states.
 - **Dynamic Password Strength Evaluator**: Live visual progress meter testing for length (8+ chars), uppercase characters, numbers, and symbols.
-- **Single-Use Password Recovery**: Cryptographically random 64-char hex reset tokens with a 1-hour expiration window.
-- **Email Verification**: Token-based email verification flow with automated query param checking and resend cooldown timer.
-- **Social & Instant Guest Access**: Branded OAuth sign-in options (**Google**, **Apple**, **GitHub**) and 1-click **Instant Guest Pass** for immediate demo access.
-- **Brute-Force Protection**: IP rate-limiting on sensitive auth routes (`express-rate-limit`).
 
 ### 2. 🗺️ Interactive 3D World Globe & Destinations
 - **3D Globe Visualization**: Built using Three.js and WebGL (`react-globe.gl`) with interactive destination pins, altitude arcs, and auto-rotation.
@@ -86,6 +90,8 @@ WORLD_Tourism/
 ```bash
 cd server
 npm install
+# Copy and configure environment variables
+cp .env.example .env
 npm run dev
 ```
 *The server will start on `http://localhost:3001`.*
@@ -97,6 +103,28 @@ npm install
 npm run dev
 ```
 *The client application will start on `http://localhost:5173`.*
+
+---
+
+## ⚙️ Environment Variables Configuration
+
+Copy [server/.env.example](file:///c:/Users/Hp/OneDrive/Desktop/Macro%20Project/server/.env.example) to `server/.env` to configure your credentials:
+
+| Environment Variable | Description | Default / Example |
+|---|---|---|
+| `PORT` | Backend server port | `3001` |
+| `CLIENT_URL` | Frontend origin for CORS credentials | `http://localhost:5173` |
+| `MONGODB_URI` | MongoDB connection string for user profiles & sessions | `mongodb://localhost:27017/tims_tourism` |
+| `JWT_SECRET` | Secret key for signing JWT session tokens | `tims_jwt_secure_super_secret_key_2026` |
+| `TWILIO_ACCOUNT_SID` | Twilio Account SID for real SMS OTP delivery | *Optional in dev* |
+| `TWILIO_AUTH_TOKEN` | Twilio Auth Token for SMS dispatch | *Optional in dev* |
+| `TWILIO_PHONE_NUMBER` | Twilio registered phone number | *Optional in dev* |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID (Google Identity Services) | *Optional in dev* |
+| `GOOGLE_CLIENT_SECRET`| Google OAuth Client Secret | *Optional in dev* |
+| `APPLE_CLIENT_ID` | Apple Developer Service ID for Apple Sign-In | *Optional in dev* |
+| `SMTP_HOST` / `SMTP_USER` | SMTP server host and username for email verification & reset | *Optional in dev* |
+
+> **Note on Development Mode:** When SMS (Twilio) or SMTP (Email) keys are left unconfigured, the application runs in a simulated development mode: verification codes and password reset links are printed directly to the server terminal and returned with helpful test chips for immediate testing without external paid services.
 
 ---
 

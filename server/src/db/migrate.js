@@ -57,10 +57,17 @@ function migrate() {
       image_url TEXT,
       rating REAL DEFAULT 0,
       best_season TEXT,
+      category TEXT DEFAULT 'Historical',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  try {
+    db.run("ALTER TABLE destinations ADD COLUMN category TEXT DEFAULT 'Historical'");
+  } catch {
+    // Column already exists
+  }
 
   db.run(`
     CREATE TABLE IF NOT EXISTS hotels (
@@ -143,6 +150,32 @@ function migrate() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (dest_id) REFERENCES destinations(id) ON DELETE CASCADE,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS countries (
+      code TEXT PRIMARY KEY,
+      code3 TEXT,
+      name TEXT NOT NULL,
+      official_name TEXT,
+      capital TEXT,
+      region TEXT,
+      subregion TEXT,
+      population INTEGER,
+      area REAL,
+      currencies TEXT,
+      languages TEXT,
+      flag_emoji TEXT,
+      flag_url TEXT,
+      flag_svg TEXT,
+      latitude REAL,
+      longitude REAL,
+      borders TEXT,
+      summary TEXT,
+      cover_image TEXT,
+      best_season TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
 

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { destinationsAPI } from '../api/client';
-import axios from 'axios';
+import { destinationsAPI, countriesAPI } from '../api/client';
 
 export default function DestinationsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -9,47 +8,52 @@ export default function DestinationsPage() {
   const [regions, setRegions] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Real API data mixed in
+  // Real country data from TIMS countries database
   const [countriesData, setCountriesData] = useState({});
 
   const search = searchParams.get('search') || '';
   const region = searchParams.get('region') || '';
+  const category = searchParams.get('category') || '';
+
+  const CATEGORIES = ['Mountains', 'Beaches', 'Historical', 'Religious', 'Plains', 'Forests'];
 
   useEffect(() => {
     // Fetch regions
-    destinationsAPI.getRegions().then(res => setRegions(res.data.regions));
+    destinationsAPI.getRegions().then(res => setRegions(res.data.regions)).catch(console.error);
 
     // Fetch destinations
     setLoading(true);
-    destinationsAPI.list({ search, region }).then(async res => {
+    destinationsAPI.list({ search, region, category, limit: 60 }).then(async res => {
       const dests = res.data.destinations;
       setDestinations(dests);
       
-      // Fetch real country data from REST Countries API
+      // Fetch country facts reliably from local countriesAPI
       try {
         const uniqueCountries = [...new Set(dests.map(d => d.country))];
         const countryPromises = uniqueCountries.map(c => 
-          axios.get(`https://restcountries.com/v3.1/name/${c}?fullText=true`).catch(() => null)
+          countriesAPI.getByCode(c).catch(() => null)
         );
         const responses = await Promise.all(countryPromises);
         const cData = {};
         responses.forEach(r => {
-          if (r && r.data && r.data[0]) {
-            const data = r.data[0];
-            cData[data.name.common] = {
-              flag: data.flags.svg,
-              currency: Object.values(data.currencies || {})[0]?.name,
-              language: Object.values(data.languages || {})[0],
+          if (r && r.data && r.data.country) {
+            const country = r.data.country;
+            cData[country.name] = {
+              code: country.code,
+              flag: country.flag_url,
+              emoji: country.flag_emoji,
+              currency: country.currencies?.split(',')[0],
+              language: country.languages?.split(',')[0],
             };
           }
         });
         setCountriesData(cData);
       } catch (err) {
-        console.error("Failed to fetch real country data", err);
+        console.error("Failed to load country details", err);
       }
       setLoading(false);
-    });
-  }, [search, region]);
+    }).catch(() => setLoading(false));
+  }, [search, region, category]);
 
   return (
     <div className="page container">
@@ -65,8 +69,20 @@ export default function DestinationsPage() {
           placeholder="Search destinations..." 
           value={search}
           onChange={e => setSearchParams(prev => { prev.set('search', e.target.value); return prev; })}
-          style={{ flex: 1, minWidth: '250px' }}
+          style={{ flex: 1, minWidth: '220px' }}
         />
+        <select 
+          className="select"
+          value={category}
+          onChange={e => setSearchParams(prev => { 
+            if (e.target.value) prev.set('category', e.target.value);
+            else prev.delete('category');
+            return prev; 
+          })}
+        >
+          <option value="">All Categories</option>
+          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
         <select 
           className="select"
           value={region}

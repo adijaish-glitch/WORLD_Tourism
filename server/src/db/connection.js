@@ -34,8 +34,9 @@ function saveDb() {
   fs.writeFileSync(DB_PATH, buffer);
 }
 
-// Auto-save every 5 seconds
-setInterval(() => { if (db) saveDb(); }, 5000);
+// Auto-save every 5 seconds (unreferenced so standalone scripts can terminate)
+const saveInterval = setInterval(() => { if (db) saveDb(); }, 5000);
+if (saveInterval.unref) saveInterval.unref();
 
 // Save on exit
 process.on('exit', saveDb);

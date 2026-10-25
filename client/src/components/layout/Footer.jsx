@@ -14,6 +14,7 @@ export default function Footer() {
           <div>
             <div className="footer-title">Explore</div>
             <div className="footer-links">
+              <Link to="/countries">Countries Atlas</Link>
               <Link to="/destinations">Destinations</Link>
               <Link to="/packages">Tour Packages</Link>
               <Link to="/explore">Interactive Map</Link>

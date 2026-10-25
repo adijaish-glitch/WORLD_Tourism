@@ -1,9 +1,13 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'http://localhost:3001/api' });
+const API = axios.create({
+  baseURL: 'http://localhost:3001/api',
+  withCredentials: true // Transmit HttpOnly session cookies automatically with all requests
+});
 
+// Attach Authorization header if localStorage token exists (for dual cookie + header support)
 API.interceptors.request.use(cfg => {
-  const token = localStorage.getItem('tims_token');
+  const token = localStorage.getItem('tims_token') || sessionStorage.getItem('tims_token');
   if (token) cfg.headers.Authorization = `Bearer ${token}`;
   return cfg;
 });
@@ -13,6 +17,20 @@ export const authAPI = {
     API.post('/auth/login', { identifier, email: identifier, password, remember_me }),
   register: (data) =>
     API.post('/auth/register', data),
+  sendPhoneOtp: (phone) =>
+    API.post('/auth/phone/send-otp', { phone }),
+  verifyPhoneOtp: (phone, otp, full_name, remember_me = false) =>
+    API.post('/auth/phone/verify-otp', { phone, otp, full_name, remember_me }),
+  firebaseAuth: (idToken, remember_me = false) =>
+    API.post('/auth/firebase', { idToken, remember_me }),
+  oauthGoogle: (credential, remember_me = false) =>
+    API.post('/auth/oauth/google', { credential, remember_me }),
+  oauthApple: (identityToken, fullName, remember_me = false) =>
+    API.post('/auth/oauth/apple', { identityToken, fullName, remember_me }),
+  socialLogin: (payload) =>
+    API.post('/auth/social-login', payload),
+  guestLogin: () =>
+    API.post('/auth/guest-login'),
   verifyEmail: (token, email) =>
     API.post('/auth/verify-email', { token, email }),
   resendVerification: (email) =>
@@ -21,10 +39,8 @@ export const authAPI = {
     API.post('/auth/forgot-password', { email }),
   resetPassword: (token, new_password) =>
     API.post('/auth/reset-password', { token, new_password }),
-  socialLogin: (payload) =>
-    API.post('/auth/social-login', payload),
-  guestLogin: () =>
-    API.post('/auth/guest-login'),
+  logout: () =>
+    API.post('/auth/logout'),
   profile: () =>
     API.get('/auth/profile'),
   updateProfile: (data) =>
@@ -38,6 +54,13 @@ export const destinationsAPI = {
   create: (data) => API.post('/destinations', data),
   update: (id, data) => API.put(`/destinations/${id}`, data),
   delete: (id) => API.delete(`/destinations/${id}`),
+};
+
+export const countriesAPI = {
+  list: (params) => API.get('/countries', { params }),
+  getByCode: (code) => API.get(`/countries/${code}`),
+  getRegions: () => API.get('/countries/regions'),
+  getGlobePoints: () => API.get('/countries/globe'),
 };
 
 export const hotelsAPI = {
@@ -83,4 +106,3 @@ export const usersAPI = {
 };
 
 export default API;
-

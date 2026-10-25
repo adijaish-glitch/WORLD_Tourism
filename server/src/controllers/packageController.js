@@ -13,14 +13,18 @@ function queryOne(sql, params = []) { return queryAll(sql, params)[0] || null; }
 function run(sql, params = []) { getDb().run(sql, params); saveDb(); }
 
 exports.list = (req, res) => {
-  const { dest_id, min_price, max_price, limit = 50 } = req.query;
+  const { dest_id, min_price, max_price, search, limit = 100 } = req.query;
   let where = ['p.is_active = 1'], params = [];
   if (dest_id) { where.push('p.dest_id = ?'); params.push(Number(dest_id)); }
   if (min_price) { where.push('p.base_price >= ?'); params.push(Number(min_price)); }
   if (max_price) { where.push('p.base_price <= ?'); params.push(Number(max_price)); }
+  if (search) {
+    where.push('(p.name LIKE ? OR d.name LIKE ? OR d.country LIKE ? OR p.description LIKE ?)');
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+  }
   const whereClause = 'WHERE ' + where.join(' AND ');
   const packages = queryAll(`
-    SELECT p.*, d.name as dest_name, h.name as hotel_name, h.category as hotel_category
+    SELECT p.*, d.name as dest_name, d.country as dest_country, h.name as hotel_name, h.category as hotel_category
     FROM packages p
     JOIN destinations d ON p.dest_id = d.id
     JOIN hotels h ON p.hotel_id = h.id

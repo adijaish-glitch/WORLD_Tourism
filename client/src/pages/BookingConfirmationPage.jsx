@@ -10,11 +10,19 @@ export default function BookingConfirmationPage() {
 
   useEffect(() => {
     if (bookingId) {
-      bookingsAPI.list().then(res => {
-        const found = res.data.bookings.find(b => b.id === Number(bookingId));
-        setBooking(found || null);
-        setLoading(false);
-      }).catch(() => setLoading(false));
+      bookingsAPI.getById(bookingId)
+        .then(res => {
+          setBooking(res.data.booking || null);
+          setLoading(false);
+        })
+        .catch(() => {
+          // Fallback to list search if direct getById has permission issue or legacy format
+          bookingsAPI.list().then(res => {
+            const found = res.data.bookings.find(b => b.id === Number(bookingId));
+            setBooking(found || null);
+            setLoading(false);
+          }).catch(() => setLoading(false));
+        });
     } else {
       setLoading(false);
     }
@@ -73,7 +81,7 @@ export default function BookingConfirmationPage() {
               Confirmation Number
             </div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#09090b', fontFamily: 'monospace', letterSpacing: '0.1em' }}>
-              TIMS-{String(booking.id).padStart(5, '0')}
+              {booking.reference_number || `TIMS-${String(booking.id).padStart(5, '0')}`}
             </div>
           </div>
 

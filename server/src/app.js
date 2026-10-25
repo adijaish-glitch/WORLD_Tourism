@@ -142,6 +142,7 @@ app.delete('/api/packages/:id', authenticate, adminOnly, packageController.delet
 
 // Booking routes
 app.get('/api/bookings', authenticate, bookingController.list);
+app.get('/api/bookings/:id', authenticate, bookingController.getById);
 app.post('/api/bookings', authenticate, bookingController.create);
 app.post('/api/bookings/preview', authenticate, bookingController.preview);
 app.put('/api/bookings/:id/cancel', authenticate, bookingController.cancel);
@@ -169,6 +170,15 @@ app.use((err, req, res, next) => {
 
 // Start server
 async function start() {
+  // Validate production environment variables
+  if (process.env.NODE_ENV === 'production') {
+    const secret = process.env.JWT_SECRET;
+    if (!secret || secret.includes('replace_with_a_strong_random_secret') || secret.includes('super_secure') || secret.length < 32) {
+      console.error('❌ CRITICAL SECURITY ERROR: Strong JWT_SECRET (minimum 32 characters) must be configured in production.');
+      process.exit(1);
+    }
+  }
+
   // Connect to MongoDB for user profiles & authentication
   await connectMongo();
 

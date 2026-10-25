@@ -108,35 +108,37 @@ npm run dev
 
 ## ⚙️ Environment Variables Configuration
 
-Copy [server/.env.example](file:///c:/Users/Hp/OneDrive/Desktop/Macro%20Project/server/.env.example) to `server/.env` to configure your credentials:
+Copy `server/.env.example` to `server/.env` to configure your credentials:
 
-| Environment Variable | Description | Default / Example |
+| Environment Variable | Description | Recommended Setting |
 |---|---|---|
-| `PORT` | Backend server port | `3001` |
+| `PORT` | Backend server port | `3001` (or deployment assigned `$PORT`) |
 | `CLIENT_URL` | Frontend origin for CORS credentials | `http://localhost:5173` |
 | `MONGODB_URI` | MongoDB connection string for user profiles & sessions | `mongodb://localhost:27017/tims_tourism` |
-| `JWT_SECRET` | Secret key for signing JWT session tokens | `tims_jwt_secure_super_secret_key_2026` |
-| `TWILIO_ACCOUNT_SID` | Twilio Account SID for real SMS OTP delivery | *Optional in dev* |
+| `JWT_SECRET` | Secret key for signing JWT session tokens | `replace_with_a_strong_random_secret` *(min 32 chars in production)* |
+| `TWILIO_ACCOUNT_SID` | Twilio Account SID for real SMS OTP delivery | *Optional in dev (uses local simulator)* |
 | `TWILIO_AUTH_TOKEN` | Twilio Auth Token for SMS dispatch | *Optional in dev* |
 | `TWILIO_PHONE_NUMBER` | Twilio registered phone number | *Optional in dev* |
 | `GOOGLE_CLIENT_ID` | Google OAuth Client ID (Google Identity Services) | *Optional in dev* |
 | `GOOGLE_CLIENT_SECRET`| Google OAuth Client Secret | *Optional in dev* |
 | `APPLE_CLIENT_ID` | Apple Developer Service ID for Apple Sign-In | *Optional in dev* |
-| `SMTP_HOST` / `SMTP_USER` | SMTP server host and username for email verification & reset | *Optional in dev* |
+| `SMTP_HOST` / `SMTP_USER` | SMTP server host and username for email verification & reset | *Optional in dev (uses local simulator)* |
 
 > **Note on Development Mode:** When SMS (Twilio) or SMTP (Email) keys are left unconfigured, the application runs in a simulated development mode: verification codes and password reset links are printed directly to the server terminal and returned with helpful test chips for immediate testing without external paid services.
 
 ---
 
-## 🔑 Default Credentials
+## 🔑 Demo & Test Accounts
 
-For quick evaluation and testing:
+For local demonstration and evaluation:
 
-| Role | Email | Password |
-|---|---|---|
-| **Admin** | `admin@tims.com` | `admin123` |
-| **Customer** | `john@example.com` | `password123` |
-| **Guest** | *One-click "Instant Guest Pass" on the login page* | *Auto-generated* |
+| Role | Email | Password | Access Level |
+|---|---|---|---|
+| **Admin** | `admin@tims.com` | `admin123` | Full administrative control panel, reports, user management |
+| **Customer** | `john@example.com` | `password123` | Traveler bookings, profile, cancellation |
+| **Instant Guest** | *Click "Instant Guest Pass" on Login page* | *Auto-generated* | Temporary traveler session |
+
+> ⚠️ **Production Security Notice:** Demo credentials are only seeded in development environments. In production, configure an administrator via environment variables or a manual setup script with a cryptographically generated password.
 
 ---
 

@@ -82,6 +82,7 @@ export const packagesAPI = {
 
 export const bookingsAPI = {
   list: (params) => API.get('/bookings', { params }),
+  getById: (id) => API.get(`/bookings/${id}`),
   create: (data) => API.post('/bookings', data),
   preview: (data) => API.post('/bookings/preview', data),
   cancel: (id) => API.put(`/bookings/${id}/cancel`),

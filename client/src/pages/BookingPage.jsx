@@ -64,9 +64,14 @@ export default function BookingPage() {
 
   const handleSubmit = async () => {
     try {
-      await bookingsAPI.create({ package_id: packageId, ...booking });
+      const res = await bookingsAPI.create({ package_id: packageId, ...booking });
       success('Booking confirmed successfully!');
-      navigate('/dashboard');
+      const newBookingId = res.data?.booking?.id;
+      if (newBookingId) {
+        navigate(`/booking/confirmation?id=${newBookingId}`);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       error(err.response?.data?.error || 'Booking failed');
     }

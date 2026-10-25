@@ -179,6 +179,27 @@ function migrate() {
     )
   `);
 
+  // Add reference_number and payment_status to bookings table safely
+  try {
+    db.run("ALTER TABLE bookings ADD COLUMN reference_number TEXT");
+  } catch {
+    // Column already exists
+  }
+  try {
+    db.run("ALTER TABLE bookings ADD COLUMN payment_status TEXT DEFAULT 'paid'");
+  } catch {
+    // Column already exists
+  }
+
+  // Create performance indexes on frequently queried relational keys
+  db.run("CREATE INDEX IF NOT EXISTS idx_bookings_user_id ON bookings(user_id)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_bookings_package_id ON bookings(package_id)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_packages_dest_id ON packages(dest_id)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_packages_hotel_id ON packages(hotel_id)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_hotels_dest_id ON hotels(dest_id)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_reviews_dest_id ON reviews(dest_id)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_countries_region ON countries(region)");
+
   saveDb();
   console.log('✓ Migrations applied');
 }

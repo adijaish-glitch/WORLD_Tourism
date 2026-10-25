@@ -38,15 +38,29 @@ exports.getById = (req, res) => {
 exports.getAvailability = (req, res) => {
   const hotel = queryOne('SELECT total_rooms FROM hotels WHERE id = ?', [req.params.id]);
   if (!hotel) return res.status(404).json({ error: 'Hotel not found' });
-  // Simulated blocked dates
-  const blocked = [];
-  const now = new Date();
-  for (let i = 0; i < 5; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() + Math.floor(Math.random() * 60) + 5);
-    blocked.push(d.toISOString().split('T')[0]);
-  }
-  res.json({ total_rooms: hotel.total_rooms, blocked_dates: blocked });
+
+  // Query authoritative active bookings for this hotel that are current or upcoming
+  const bookings = queryAll(`
+    SELECT b.check_in, b.check_out, SUM(b.travelers) as booked_guests
+    FROM bookings b
+    JOIN packages p ON b.package_id = p.id
+    WHERE p.hotel_id = ? AND b.status != 'cancelled' AND b.check_out >= date('now')
+    GROUP BY b.check_in, b.check_out
+  `, [req.params.id]);
+
+  const maxCapacity = (hotel.total_rooms || 50) * 2;
+  const fullyBookedDates = [];
+  bookings.forEach(b => {
+    if (b.booked_guests >= maxCapacity) {
+      fullyBookedDates.push(b.check_in);
+    }
+  });
+
+  res.json({
+    total_rooms: hotel.total_rooms || 50,
+    fully_booked_dates: fullyBookedDates,
+    active_reservations: bookings.length
+  });
 };
 
 exports.create = (req, res) => {

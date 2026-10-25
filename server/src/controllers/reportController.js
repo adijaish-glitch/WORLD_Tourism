@@ -42,6 +42,7 @@ exports.bookingsByDest = (req, res) => {
     FROM bookings b
     JOIN packages p ON b.package_id = p.id
     JOIN destinations d ON p.dest_id = d.id
+    WHERE b.status != 'cancelled'
     GROUP BY d.id ORDER BY booking_count DESC LIMIT 10
   `);
   res.json({ data });
@@ -51,10 +52,22 @@ exports.occupancy = (req, res) => {
   const data = queryAll(`
     SELECT h.name as hotel_name, h.total_rooms,
            COUNT(b.id) as booking_count,
-           ROUND(CAST(COUNT(b.id) AS FLOAT) / MAX(h.total_rooms, 1) * 100, 1) as occupancy_rate
+           COALESCE(SUM(b.travelers), 0) as active_guests,
+           ROUND(
+             MIN(
+               100.0,
+               CAST(COALESCE(SUM(b.travelers), 0) AS FLOAT) / MAX(h.total_rooms * 2, 1) * 100
+             ),
+             1
+           ) as occupancy_rate
     FROM hotels h
     LEFT JOIN packages p ON p.hotel_id = h.id
-    LEFT JOIN bookings b ON b.package_id = p.id AND b.status != 'cancelled'
+    LEFT JOIN bookings b ON b.package_id = p.id
+      AND b.status != 'cancelled'
+      AND (
+        (date('now') BETWEEN date(b.check_in) AND date(b.check_out))
+        OR (date(b.check_in) >= date('now') AND date(b.check_in) <= date('now', '+30 days'))
+      )
     GROUP BY h.id ORDER BY occupancy_rate DESC
   `);
   res.json({ data });

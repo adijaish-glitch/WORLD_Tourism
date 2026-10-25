@@ -261,6 +261,43 @@ export function LoginPage() {
     setLoading(true);
     setFormError('');
     try {
+      // 1. Google Identity Services (Google Cloud Console OAuth Client ID)
+      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (googleClientId && window.google?.accounts?.oauth2) {
+        const client = window.google.accounts.oauth2.initTokenClient({
+          client_id: googleClientId,
+          scope: 'email profile openid',
+          callback: async (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
+              try {
+                const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                });
+                const gProfile = await gRes.json();
+                const user = await socialLogin({
+                  provider: 'google',
+                  provider_id: gProfile.sub,
+                  email: gProfile.email,
+                  full_name: gProfile.name,
+                  avatar_url: gProfile.picture
+                });
+                success('Welcome, ' + (user.full_name || 'Traveler') + '!');
+                navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+              } catch (gErr) {
+                setFormError('Failed to fetch Google profile: ' + (gErr.message || ''));
+              } finally {
+                setLoading(false);
+              }
+            } else {
+              setLoading(false);
+            }
+          }
+        });
+        client.requestAccessToken();
+        return;
+      }
+
+      // 2. Firebase Authentication with Google Popup
       if (isFirebaseConfigured() && auth) {
         const result = await signInWithPopup(auth, googleProvider);
         const idToken = await result.user.getIdToken();
@@ -268,7 +305,7 @@ export function LoginPage() {
         success('Welcome, ' + (user.full_name || 'Traveler') + '!');
         navigate(user.role === 'admin' ? '/admin' : '/dashboard');
       } else {
-        // Fallback for development before Firebase keys are added to client/.env
+        // Fallback for development before Google credentials are added
         const user = await socialLogin({
           provider: 'google',
           provider_id: `google_${Date.now()}`,

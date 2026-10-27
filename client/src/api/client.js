@@ -2,8 +2,18 @@ import axios from 'axios';
 
 const getBaseURL = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return '/api';
+  if (typeof window !== 'undefined') {
+    // When on Render, use relative /api
+    if (window.location.hostname.includes('onrender.com')) {
+      return '/api';
+    }
+    // When on Vercel or GitHub Pages, use live Render backend
+    if (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('github.io')) {
+      return 'https://tims-tourism.onrender.com/api';
+    }
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return '/api';
+    }
   }
   return 'http://localhost:3001/api';
 };

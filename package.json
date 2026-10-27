@@ -10,7 +10,9 @@
     "db:migrate": "cd server && npm run migrate",
     "db:seed": "cd server && npm run seed",
     "db:setup": "cd server && npm run migrate && npm run seed",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm run build",
+    "render:build": "npm install && cd client && npm install && npm run build && cd ../server && npm install",
+    "start": "node server/src/app.js"
   },
   "devDependencies": {
     "concurrently": "^9.0.1"

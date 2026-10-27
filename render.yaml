@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: tims-tourism
+    env: node
+    plan: free
+    buildCommand: npm run render:build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

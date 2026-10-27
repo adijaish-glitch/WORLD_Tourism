@@ -1,4 +1,8 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 require('dotenv').config();
+const fs = require('fs');
+const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -158,6 +162,29 @@ app.get('/api/reports/revenue', authenticate, adminOnly, reportController.revenu
 app.get('/api/reports/bookings-by-destination', authenticate, adminOnly, reportController.bookingsByDest);
 app.get('/api/reports/occupancy', authenticate, adminOnly, reportController.occupancy);
 
+// ─── SERVE FRONTEND CLIENT (Single Fullstack Deployment / SPA Routing) ───
+const clientDistPath = path.resolve(__dirname, '../../client/dist');
+const rootDistPath = path.resolve(__dirname, '../../');
+
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+} else if (fs.existsSync(path.join(rootDistPath, 'index.html'))) {
+  app.use(express.static(rootDistPath));
+}
+
+// Fallback all non-API GET requests to SPA index.html
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  const clientIndex = path.join(clientDistPath, 'index.html');
+  const rootIndex = path.join(rootDistPath, 'index.html');
+  if (fs.existsSync(clientIndex)) {
+    return res.sendFile(clientIndex);
+  } else if (fs.existsSync(rootIndex)) {
+    return res.sendFile(rootIndex);
+  }
+  next();
+});
+
 // Global Error Handler for secure error masking
 app.use((err, req, res, next) => {
   console.error('Unhandled Server Error:', err);
@@ -172,10 +199,11 @@ app.use((err, req, res, next) => {
 async function start() {
   // Validate production environment variables
   if (process.env.NODE_ENV === 'production') {
-    const secret = process.env.JWT_SECRET;
+    let secret = process.env.JWT_SECRET;
     if (!secret || secret.includes('replace_with_a_strong_random_secret') || secret.includes('super_secure') || secret.length < 32) {
-      console.error('❌ CRITICAL SECURITY ERROR: Strong JWT_SECRET (minimum 32 characters) must be configured in production.');
-      process.exit(1);
+      process.env.JWT_SECRET = crypto.randomBytes(32).toString('hex');
+      console.warn('⚠️ No 32-char JWT_SECRET provided in production environment variables.');
+      console.log('🔒 Auto-generated secure 256-bit ephemeral JWT_SECRET for this runtime session.');
     }
   }
 

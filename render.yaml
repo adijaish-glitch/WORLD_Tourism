@@ -8,3 +8,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: VITE_GOOGLE_CLIENT_ID
+        value: 570542000883-4qukp766km3vbhru67momjce9u7ckm9v.apps.googleusercontent.com
+

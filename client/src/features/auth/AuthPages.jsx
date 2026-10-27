@@ -263,7 +263,7 @@ export function LoginPage() {
     setFormError('');
     try {
       // 1. Google Identity Services (Google Cloud Console OAuth Client ID)
-      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '570542000883-4qukp766km3vbhru67momjce9u7ckm9v.apps.googleusercontent.com';
       if (googleClientId && window.google?.accounts?.oauth2) {
         const client = window.google.accounts.oauth2.initTokenClient({
           client_id: googleClientId,
@@ -724,7 +724,7 @@ export function RegisterPage() {
     setLoading(true);
     setFormError('');
     try {
-      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '570542000883-4qukp766km3vbhru67momjce9u7ckm9v.apps.googleusercontent.com';
       if (googleClientId && window.google?.accounts?.oauth2) {
         const client = window.google.accounts.oauth2.initTokenClient({
           client_id: googleClientId,

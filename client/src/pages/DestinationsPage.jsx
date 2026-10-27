@@ -121,7 +121,16 @@ export default function DestinationsPage() {
           {destinations.map(d => (
             <Link to={`/destinations/${d.id}`} key={d.id} className="card" style={{ display: 'block' }}>
               <div style={{ position: 'relative' }}>
-                <img src={d.image_url} alt={d.name} className="card-img" />
+                <img 
+                  src={d.image_url} 
+                  alt={d.name} 
+                  className="card-img" 
+                  loading="lazy"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80';
+                  }}
+                />
                 <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.6)', padding: '4px 8px', borderRadius: 'var(--radius-sm)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <span className="stars">★</span> <span style={{ color: 'white', fontWeight: 700, fontSize: '0.85rem' }}>{d.rating}</span>
                 </div>

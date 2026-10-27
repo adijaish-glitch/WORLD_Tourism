@@ -55,6 +55,21 @@ export default function ExploreMapPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Initialize auto-rotation on the 3D globe
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (globeRef.current) {
+        const controls = globeRef.current.controls();
+        if (controls) {
+          controls.autoRotate = true;
+          controls.autoRotateSpeed = 0.6;
+          controls.enableDamping = true;
+        }
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Handle URL query parameters to fly to specific country / coordinates
   useEffect(() => {
     const lat = searchParams.get('lat');
@@ -253,17 +268,25 @@ export default function ExploreMapPage() {
 
       {/* 3D Globe or WebGL Fallback */}
       {webglSupported ? (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'radial-gradient(circle at center, #0f172a 0%, #050508 70%)'
+        }}>
           <Globe
             ref={globeRef}
             width={windowSize.width}
             height={windowSize.height}
-            globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-            bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-            backgroundColor="#050508"
+            globeImageUrl="/textures/earth-blue-marble.jpg"
+            bumpImageUrl="/textures/earth-topology.png"
+            backgroundColor="rgba(0,0,0,0)"
             showAtmosphere={true}
-            atmosphereColor="#3b82f6"
-            atmosphereAltitude={0.15}
+            atmosphereColor="#60a5fa"
+            atmosphereAltitude={0.2}
             ringsData={activeData}
             ringColor={() => (viewMode === 'countries' ? '#38bdf8' : '#eab308')}
             ringMaxRadius={2}

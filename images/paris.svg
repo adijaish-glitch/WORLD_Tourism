@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="parisSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="60%" stop-color="#4338ca" />
+      <stop offset="100%" stop-color="#f43f5e" />
+    </linearGradient>
+    <linearGradient id="towerGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#ca8a04" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#parisSky)" />
+  <circle cx="200" cy="180" r="45" fill="#fef08a" opacity="0.85" filter="drop-shadow(0 0 25px #fef08a)" />
+  <!-- Stars -->
+  <circle cx="120" cy="80" r="2" fill="#ffffff" opacity="0.8" />
+  <circle cx="340" cy="120" r="2.5" fill="#ffffff" opacity="0.9" />
+  <circle cx="650" cy="90" r="2" fill="#ffffff" opacity="0.7" />
+  <circle cx="720" cy="160" r="3" fill="#ffffff" opacity="0.85" />
+  <circle cx="500" cy="70" r="1.5" fill="#ffffff" opacity="0.6" />
+  
+  <!-- Eiffel Tower Silhouette -->
+  <polygon points="395,120 405,120 410,240 390,240" fill="url(#towerGold)" />
+  <polygon points="385,240 415,240 430,420 370,420" fill="url(#towerGold)" />
+  <path d="M 360 420 Q 400 370 440 420 L 470 560 L 435 560 L 415 460 Q 400 445 385 460 L 365 560 L 330 560 Z" fill="url(#towerGold)" />
+  
+  <!-- Ground & City Horizon -->
+  <path d="M0 540 L800 540 L800 600 L0 600 Z" fill="#0f172a" />
+  <rect x="50" y="500" width="80" height="40" fill="#1e293b" />
+  <rect x="180" y="480" width="100" height="60" fill="#1e293b" />
+  <rect x="520" y="490" width="120" height="50" fill="#1e293b" />
+  <rect x="670" y="510" width="90" height="30" fill="#1e293b" />
+  
+  <text x="400" y="575" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="700" text-anchor="middle" letter-spacing="3">PARIS, FRANCE</text>
+</svg>

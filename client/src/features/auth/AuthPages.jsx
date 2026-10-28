@@ -74,6 +74,23 @@ function evaluatePassword(pwd) {
   return { score: 100, label: 'Strong', color: '#10b981', rules };
 }
 
+// ─── Ensure Google Identity Services SDK is ready ───
+const ensureGoogleScriptLoaded = () => {
+  return new Promise((resolve) => {
+    if (window.google?.accounts?.oauth2) return resolve(true);
+    let script = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+    if (!script) {
+      script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+    script.addEventListener('load', () => resolve(Boolean(window.google?.accounts?.oauth2)));
+    setTimeout(() => resolve(Boolean(window.google?.accounts?.oauth2)), 1500);
+  });
+};
+
 // ─── 1. LOGIN PAGE (Email + Password OR Phone OTP via SMS) ───
 export function LoginPage() {
   const [authMode, setAuthMode] = useState('email'); // 'email' | 'phone'
@@ -262,6 +279,7 @@ export function LoginPage() {
     setLoading(true);
     setFormError('');
     try {
+      await ensureGoogleScriptLoaded();
       // 1. Google Identity Services (Google Cloud Console OAuth Client ID)
       const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '570542000883-4qukp766km3vbhru67momjce9u7ckm9v.apps.googleusercontent.com';
       if (googleClientId && window.google?.accounts?.oauth2) {
@@ -330,7 +348,7 @@ export function LoginPage() {
         success('Welcome, ' + (user.full_name || 'Traveler') + '!');
         navigate(user.role === 'admin' ? '/admin' : '/dashboard');
       } else {
-        setFormError('Google Client ID is not configured. Please set VITE_GOOGLE_CLIENT_ID in your environment.');
+        setFormError('Google sign-in is initializing or temporarily blocked. Please refresh and try again.');
       }
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
@@ -724,6 +742,7 @@ export function RegisterPage() {
     setLoading(true);
     setFormError('');
     try {
+      await ensureGoogleScriptLoaded();
       const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '570542000883-4qukp766km3vbhru67momjce9u7ckm9v.apps.googleusercontent.com';
       if (googleClientId && window.google?.accounts?.oauth2) {
         const client = window.google.accounts.oauth2.initTokenClient({
@@ -792,7 +811,7 @@ export function RegisterPage() {
         return;
       }
 
-      setFormError('Google Client ID is not configured. Please set VITE_GOOGLE_CLIENT_ID in your environment.');
+      setFormError('Google sign-in is initializing or temporarily blocked. Please refresh and try again.');
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
         // User closed popup

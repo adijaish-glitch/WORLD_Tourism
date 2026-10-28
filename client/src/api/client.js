@@ -124,4 +124,15 @@ export const usersAPI = {
   update: (id, data) => API.put(`/users/${id}`, data),
 };
 
+export const travelAPI = {
+  search: (params) => API.get('/travel/search', { params }),
+  revalidate: (params) => API.get('/travel/revalidate', { params }),
+  redirect: (data) => API.post('/travel/redirect', data),
+  providers: () => API.get('/travel/providers'),
+  auditLogs: (params) => API.get('/travel/audit-logs', { params }),
+  createOffer: (data) => API.post('/travel/offers', data),
+  updateOffer: (id, data) => API.put(`/travel/offers/${id}`, data),
+  deleteOffer: (id) => API.delete(`/travel/offers/${id}`),
+};
+
 export default API;

@@ -44,7 +44,7 @@ export default function Navbar() {
   };
 
   const navBg = scrolled
-    ? 'rgba(255,255,255,0.85)'
+    ? 'rgba(255,255,255,0.92)'
     : 'transparent';
 
   const textColor = (path) => {
@@ -56,6 +56,17 @@ export default function Navbar() {
 
   const logoColor = scrolled ? '#09090b' : isDarkPage ? '#ffffff' : '#09090b';
 
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/flights', label: 'Flights' },
+    { to: '/hotels', label: 'Hotels' },
+    { to: '/trains', label: 'Trains' },
+    { to: '/buses', label: 'Buses' },
+    { to: '/packages', label: 'Packages' },
+    { to: '/countries', label: 'Countries' },
+    { to: '/explore', label: 'Map' },
+  ];
+
   return (
     <>
       <nav style={{
@@ -64,25 +75,18 @@ export default function Navbar() {
         backdropFilter: scrolled ? 'blur(16px)' : 'none',
         WebkitBackdropFilter: scrolled ? 'blur(16px)' : 'none',
         borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : '1px solid transparent',
-        padding: '1rem 2rem',
+        padding: '0.85rem 2rem',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         transition: 'all 0.3s ease',
       }}>
         <Link to="/" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.35rem', color: logoColor, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/logo-emblem.png" alt="TIMS Emblem" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }} />
+          <img src="/logo-emblem.png" alt="TIMS Emblem" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', border: '1px solid rgba(0,0,0,0.06)' }} />
           <span style={{ letterSpacing: '0.04em' }}>TIMS</span>
         </Link>
 
         {/* Desktop Nav Links */}
-        <div className="nav-links-desktop" style={{ display: 'flex', gap: '2.5rem' }}>
-          {[
-            { to: '/', label: 'Home' },
-            { to: '/explore', label: 'Map' },
-            { to: '/countries', label: 'Countries' },
-            { to: '/destinations', label: 'Destinations' },
-            { to: '/packages', label: 'Packages' },
-            { to: '/about', label: 'About' },
-          ].map(link => (
+        <div className="nav-links-desktop" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+          {navLinks.map(link => (
             <Link
               key={link.to}
               to={link.to}
@@ -90,7 +94,7 @@ export default function Navbar() {
                 color: textColor(link.to),
                 textDecoration: 'none',
                 fontSize: '0.9rem',
-                fontWeight: location.pathname === link.to ? 600 : 500,
+                fontWeight: location.pathname === link.to ? 700 : 500,
                 transition: 'color 0.2s',
               }}
             >
@@ -208,7 +212,7 @@ export default function Navbar() {
                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     >
                       <span style={{ fontSize: '1rem' }}>📊</span>
-                      <span>Dashboard</span>
+                      <span>Dashboard & Bookings</span>
                     </Link>
 
                     {isAdmin && (
@@ -300,22 +304,15 @@ export default function Navbar() {
           background: 'rgba(255,255,255,0.98)', zIndex: 99,
           backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          gap: '2rem', padding: '2rem',
+          gap: '1.25rem', padding: '2rem',
         }}>
-          {[
-            { to: '/', label: 'Home' },
-            { to: '/explore', label: 'Map' },
-            { to: '/countries', label: 'Countries' },
-            { to: '/destinations', label: 'Destinations' },
-            { to: '/packages', label: 'Packages' },
-            { to: '/about', label: 'About' },
-          ].map(link => (
+          {navLinks.map(link => (
             <Link
               key={link.to}
               to={link.to}
               style={{
                 color: location.pathname === link.to ? '#09090b' : '#71717a',
-                textDecoration: 'none', fontSize: '1.25rem',
+                textDecoration: 'none', fontSize: '1.15rem',
                 fontWeight: location.pathname === link.to ? 700 : 500,
               }}
             >

@@ -1,55 +1,145 @@
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import TravelSearchWidget from '../components/travel/TravelSearchWidget';
 
 export default function HomePage() {
+  const navigate = useNavigate();
+
   return (
     <>
-      <div className="hero">
-      
-      {/* Top Announcement Pill */}
-      <div className="flex justify-center mb-6">
-        <div className="badge-pill">
-          Award-winning travel experiences ✈️
+      <div className="hero" style={{ paddingBottom: '3rem' }}>
+        {/* Top Announcement Pill */}
+        <div className="flex justify-center mb-6">
+          <div className="badge-pill">
+            MakeMyTrip Inspired Travel Hub · 500+ Destinations & Routes ✈️
+          </div>
+        </div>
+
+        {/* Hero Headline */}
+        <h1 className="hero-title mb-6">
+          Discover the world's most <br />
+          <span className="italic">Breathtaking Journeys</span>
+        </h1>
+
+        {/* Subtitle */}
+        <p className="hero-subtitle mb-8">
+          Search hotels, book flights, check train schedules, and reserve curated holiday packages—all in one seamless, secure discovery platform.
+        </p>
+
+        {/* MakeMyTrip-Inspired Universal Travel Search Hub */}
+        <div style={{ width: '100%', marginBottom: '3.5rem' }}>
+          <TravelSearchWidget />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-center items-center gap-4 flex-wrap" style={{ marginBottom: '3rem' }}>
+          <Link to="/packages" className="btn btn-primary">
+            Explore Packages
+          </Link>
+          <Link to="/countries" className="btn" style={{ background: '#f4f4f5', color: '#18181b', border: '1px solid #e4e4e7' }}>
+            🌍 Explore 250 Countries
+          </Link>
+          <Link to="/explore" className="btn-icon-circular" title="Interactive 3D Globe">
+            🌐
+          </Link>
+        </div>
+
+        {/* Social Proof / Partner Bar */}
+        <div className="logo-bar">
+          <span>✈ MAKEMYTRIP</span>
+          <span>🚆 IRCTC OFFICIAL</span>
+          <span>✈ AMADEUS</span>
+          <span>🚌 REDBUS</span>
+          <span>🏨 MARRIOTT</span>
+          <span>⭐ TRIPADVISOR</span>
         </div>
       </div>
 
-      {/* Hero Headline (Serif + Italic Serif) */}
-      <h1 className="hero-title mb-6">
-        Discover the world's most <br />
-        <span className="italic">Breathtaking Destinations</span>
-      </h1>
+      {/* Popular Routes Quick Discover Bar (Flights, Trains, Buses) */}
+      <div style={{ background: '#f8fafc', padding: '4rem 0', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
+        <div className="container">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <div className="badge-pill" style={{ marginBottom: '0.5rem', background: '#e0f2fe', color: '#0369a1' }}>
+                🚀 Rapid Booking Routes
+              </div>
+              <h2 style={{ fontSize: '2.2rem', fontFamily: 'var(--font-serif)', margin: 0, color: '#0f172a' }}>
+                Popular Flights & <span className="italic" style={{ color: '#2563eb' }}>Intercity Routes</span>
+              </h2>
+            </div>
+            <Link to="/search?category=flights" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>
+              View All Routes →
+            </Link>
+          </div>
 
-      {/* Subtitle */}
-      <p className="hero-subtitle mb-8">
-        Curated itineraries, luxury hotel bookings, and dynamic travel packages—all beautifully tailored to create your perfect getaway.
-      </p>
-
-      {/* Buttons */}
-      <div className="flex justify-center items-center gap-4 mt-8 flex-wrap" style={{ marginBottom: '4rem' }}>
-        <Link to="/packages" className="btn btn-primary">
-          Explore Packages
-        </Link>
-        <Link to="/countries" className="btn" style={{ background: '#f4f4f5', color: '#18181b', border: '1px solid #e4e4e7' }}>
-          🌍 Explore 250 Countries
-        </Link>
-        <Link to="/explore" className="btn-icon-circular" title="Interactive 3D Globe">
-          🌐
-        </Link>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: '1.25rem'
+          }}>
+            {[
+              { type: 'Flight', icon: '✈️', route: 'New York (JFK) → Paris (CDG)', airline: 'Air France', price: '$520', link: '/search?category=flights&origin=New+York&destination=Paris' },
+              { type: 'Flight', icon: '✈️', route: 'London (LHR) → Dubai (DXB)', airline: 'Emirates Express', price: '$460', link: '/search?category=flights&origin=London&destination=Dubai' },
+              { type: 'Train', icon: '🚆', route: 'New Delhi → Varanasi (Vande Bharat)', airline: 'IRCTC Superfast', price: '$24', link: '/search?category=trains&origin=New+Delhi&destination=Varanasi' },
+              { type: 'Bus', icon: '🚌', route: 'Bengaluru → Goa (Volvo AC Sleeper)', airline: 'FlyBus / Intercity', price: '$18', link: '/search?category=buses&origin=Bengaluru&destination=Goa' },
+            ].map((r, idx) => (
+              <Link
+                key={idx}
+                to={r.link}
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  padding: '1.25rem',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.06)';
+                  e.currentTarget.style.borderColor = '#93c5fd';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.02)';
+                  e.currentTarget.style.borderColor = '#e2e8f0';
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '1.4rem' }}>{r.icon}</span>
+                  <span style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    background: '#f1f5f9',
+                    color: '#334155',
+                    padding: '0.2rem 0.5rem',
+                    borderRadius: '6px'
+                  }}>
+                    {r.type}
+                  </span>
+                </div>
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: '#0f172a' }}>
+                  {r.route}
+                </h4>
+                <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 0.75rem 0' }}>
+                  {r.airline}
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '0.65rem' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Starting from</span>
+                  <span style={{ fontWeight: 800, color: '#16a34a', fontSize: '1.1rem' }}>{r.price}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
-
-      {/* Social Proof / Logo Bar */}
-      <div className="logo-bar">
-        <span>✈ EMIRATES</span>
-        <span>🏨 MARRIOTT</span>
-        <span>🌍 EXPEDIA</span>
-        <span>⭐ TRIPADVISOR</span>
-        <span>💼 AIRBNB</span>
-      </div>
-    </div>
 
       {/* Featured Destinations - Almanac Sticky Stack */}
       <div className="cards-container">
-        <h2 style={{ textAlign: 'center', marginBottom: '2rem', fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '2rem' }}>Trending Destinations</h2>
+        <h2 style={{ textAlign: 'center', marginBottom: '2rem', fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '2rem' }}>
+          Trending Destinations
+        </h2>
         
         {/* Card 1 */}
         <div className="almanac-card" style={{ zIndex: 10 }}>

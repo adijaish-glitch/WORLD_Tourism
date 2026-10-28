@@ -26,6 +26,7 @@ import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, VerifyE
 import ExploreMapPage from './pages/ExploreMapPage';
 import CountriesPage from './pages/CountriesPage';
 import CountryDetailPage from './pages/CountryDetailPage';
+import TravelSearchPage from './pages/TravelSearchPage';
 
 // Private Route Components
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -92,6 +93,11 @@ export default function App() {
           <PageWrapper>
             <Routes>
               <Route path="/" element={<HomePage />} />
+              <Route path="/search" element={<TravelSearchPage />} />
+              <Route path="/flights" element={<TravelSearchPage />} />
+              <Route path="/hotels" element={<TravelSearchPage />} />
+              <Route path="/trains" element={<TravelSearchPage />} />
+              <Route path="/buses" element={<TravelSearchPage />} />
               <Route path="/explore" element={<ExploreMapPage />} />
               <Route path="/countries" element={<CountriesPage />} />
               <Route path="/countries/:code" element={<CountryDetailPage />} />
@@ -138,4 +144,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-

@@ -180,16 +180,76 @@ function migrate() {
   `);
 
   // Add reference_number and payment_status to bookings table safely
-  try {
-    db.run("ALTER TABLE bookings ADD COLUMN reference_number TEXT");
-  } catch {
-    // Column already exists
-  }
-  try {
-    db.run("ALTER TABLE bookings ADD COLUMN payment_status TEXT DEFAULT 'paid'");
-  } catch {
-    // Column already exists
-  }
+  const bookingColumns = [
+    { name: 'reference_number', type: 'TEXT' },
+    { name: 'payment_status', type: "TEXT DEFAULT 'paid'" },
+    { name: 'booking_type', type: "TEXT DEFAULT 'package'" },
+    { name: 'provider_code', type: "TEXT DEFAULT 'TIMS_DIRECT'" },
+    { name: 'freshness_timestamp', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
+  ];
+
+  bookingColumns.forEach(col => {
+    try {
+      db.run(`ALTER TABLE bookings ADD COLUMN ${col.name} ${col.type}`);
+    } catch {
+      // Column already exists
+    }
+  });
+
+  // Travel Providers Table for Multi-Provider Hybrid Architecture
+  db.run(`
+    CREATE TABLE IF NOT EXISTS travel_providers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      provider_code TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      category TEXT NOT NULL,
+      website_url TEXT NOT NULL,
+      affiliate_id TEXT,
+      supports_direct_booking INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      api_endpoint TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // External & Hybrid Inventory Offers (Flights, Hotels, Trains, Buses, Packages)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS external_offers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      provider_code TEXT NOT NULL,
+      category TEXT NOT NULL,
+      title TEXT NOT NULL,
+      origin TEXT,
+      destination TEXT NOT NULL,
+      price REAL NOT NULL,
+      currency TEXT DEFAULT 'USD',
+      price_basis TEXT DEFAULT 'per_person',
+      is_estimated INTEGER DEFAULT 0,
+      deep_link TEXT NOT NULL,
+      rating REAL DEFAULT 0,
+      image_url TEXT,
+      operator_or_airline TEXT,
+      departure_time TEXT,
+      arrival_time TEXT,
+      duration TEXT,
+      stops_or_class TEXT,
+      amenities_or_terms TEXT,
+      last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Security Audit Logs
+  db.run(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      action TEXT NOT NULL,
+      ip_address TEXT,
+      details TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
   // Create performance indexes on frequently queried relational keys
   db.run("CREATE INDEX IF NOT EXISTS idx_bookings_user_id ON bookings(user_id)");
@@ -199,6 +259,9 @@ function migrate() {
   db.run("CREATE INDEX IF NOT EXISTS idx_hotels_dest_id ON hotels(dest_id)");
   db.run("CREATE INDEX IF NOT EXISTS idx_reviews_dest_id ON reviews(dest_id)");
   db.run("CREATE INDEX IF NOT EXISTS idx_countries_region ON countries(region)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_external_offers_cat_dest ON external_offers(category, destination)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_external_offers_provider ON external_offers(provider_code)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action)");
 
   saveDb();
   console.log('✓ Migrations applied');

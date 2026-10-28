@@ -23,6 +23,7 @@ const bookingController = require('./controllers/bookingController');
 const reportController = require('./controllers/reportController');
 const reviewController = require('./controllers/reviewController');
 const countryController = require('./controllers/countryController');
+const travelController = require('./controllers/travelController');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -98,7 +99,6 @@ app.post('/api/auth/social-login', authLimiter, authController.socialLogin);
 
 app.post('/api/auth/guest-login', authLimiter, authController.guestLogin);
 
-
 // Email Verification & Password Recovery
 app.post('/api/auth/verify-email', authController.verifyEmail);
 app.post('/api/auth/resend-verification', authLimiter, authController.resendVerification);
@@ -156,13 +156,32 @@ app.put('/api/bookings/:id/cancel', authenticate, bookingController.cancel);
 // Review routes
 app.get('/api/reviews/:destId', reviewController.listByDestination);
 app.post('/api/reviews', authenticate, reviewController.create);
-app.delete('/api/reviews/:id', authenticate, reviewController.delete);
+app.delete('/api/reviews/:id', reviewController.delete);
 
 // Report routes (admin)
 app.get('/api/reports/summary', authenticate, adminOnly, reportController.summary);
 app.get('/api/reports/revenue', authenticate, adminOnly, reportController.revenue);
 app.get('/api/reports/bookings-by-destination', authenticate, adminOnly, reportController.bookingsByDest);
 app.get('/api/reports/occupancy', authenticate, adminOnly, reportController.occupancy);
+
+// ─── HYBRID TRAVEL DISCOVERY & PROVIDER ROUTES ───
+// Universal Search across Flights, Hotels, Trains, Buses, and Packages
+app.get('/api/travel/search', travelController.search);
+
+// Price & Availability Revalidation before checkout
+app.get('/api/travel/revalidate', travelController.revalidate);
+
+// Secure Open-Redirect Protected Outbound Gateway
+app.post('/api/travel/redirect', travelController.generateRedirect);
+
+// Authorized Travel Providers & Affiliates
+app.get('/api/travel/providers', travelController.listProviders);
+
+// Admin: Audit Logs and External Offers Management
+app.get('/api/travel/audit-logs', authenticate, adminOnly, travelController.getAuditLogs);
+app.post('/api/travel/offers', authenticate, adminOnly, travelController.createOffer);
+app.put('/api/travel/offers/:id', authenticate, adminOnly, travelController.updateOffer);
+app.delete('/api/travel/offers/:id', authenticate, adminOnly, travelController.deleteOffer);
 
 // ─── SERVE FRONTEND CLIENT (Single Fullstack Deployment / SPA Routing) ───
 const clientDistPath = path.resolve(__dirname, '../../client/dist');
@@ -242,6 +261,10 @@ async function start() {
     await seedCountries();
   }
 
+  // Auto-seed travel providers and verified partner discovery inventory
+  const { seedTravelProviders } = require('./seeds/seedTravelProviders');
+  await seedTravelProviders();
+
   const server = app.listen(PORT, () => {
     console.log(`🌍 TIMS Server running on http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
@@ -258,4 +281,3 @@ if (require.main === module) {
 
 module.exports = app;
 module.exports.start = start;
-

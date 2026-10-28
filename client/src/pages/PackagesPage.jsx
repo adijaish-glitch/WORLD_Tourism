@@ -84,7 +84,16 @@ export default function PackagesPage() {
         <div className="grid grid-3">
           {packages.map(p => (
             <div key={p.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-              <img src={p.image_url} alt={p.name} className="card-img" />
+              <img 
+                src={p.image_url} 
+                alt={p.name} 
+                className="card-img" 
+                loading="lazy"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80';
+                }}
+              />
               <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <div className="flex justify-between items-center mb-sm">
                   <h3 className="card-title" style={{ margin: 0 }}>{p.name}</h3>
@@ -97,7 +106,7 @@ export default function PackagesPage() {
                   {p.description}
                 </p>
                 <div className="price" style={{ margin: 'auto 0 var(--space-md)' }}>
-                  ${p.base_price.toLocaleString()}<span>/person</span>
+                  ${Number(p.base_price || 0).toLocaleString()}<span>/person</span>
                 </div>
                 <Link to={`/book/${p.id}`} className="btn btn-primary w-full">Book Now</Link>
               </div>

@@ -103,7 +103,7 @@ export default function BookingConfirmationPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#09090b' }}>Total Paid</span>
             <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#09090b', fontFamily: 'var(--font-sans)' }}>
-              ${booking.total_price.toLocaleString()}
+              ${Number(booking.total_price || 0).toLocaleString()}
             </span>
           </div>
         </div>

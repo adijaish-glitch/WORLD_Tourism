@@ -105,12 +105,15 @@ export default function CustomerDashboard() {
                       <div style={{ fontSize: '0.8rem' }}>to {b.check_out}</div>
                     </td>
                     <td>{b.travelers}</td>
-                    <td style={{ fontWeight: 600, color: 'var(--accent-primary)' }}>${b.total_price.toLocaleString()}</td>
+                    <td style={{ fontWeight: 600, color: 'var(--accent-primary)' }}>${Number(b.total_price || 0).toLocaleString()}</td>
                     <td>{getStatusBadge(b.status)}</td>
                     <td>
-                      {b.status === 'confirmed' && (
-                        <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={() => handleCancel(b.id)}>Cancel</button>
-                      )}
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        <Link to={`/booking-confirmation?id=${b.id}`} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: '0.8rem' }}>Receipt</Link>
+                        {b.status === 'confirmed' && (
+                          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => handleCancel(b.id)}>Cancel</button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

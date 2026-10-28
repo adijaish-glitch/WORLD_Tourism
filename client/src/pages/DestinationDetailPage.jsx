@@ -38,7 +38,15 @@ export default function DestinationDetailPage() {
     <div>
       {/* Hero Header */}
       <div style={{ position: 'relative', height: '60vh', minHeight: '400px', display: 'flex', alignItems: 'flex-end', paddingBottom: 'var(--space-3xl)' }}>
-        <img src={d.image_url} alt={d.name} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }} />
+        <img 
+          src={d.image_url} 
+          alt={d.name} 
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }} 
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80';
+          }}
+        />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, var(--bg-deep) 0%, rgba(5,5,8,0.3) 50%, rgba(5,5,8,0.7) 100%)', zIndex: 1 }}></div>
         
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
@@ -73,14 +81,24 @@ export default function DestinationDetailPage() {
               <div className="grid grid-2" style={{ marginBottom: 'var(--space-3xl)' }}>
                 {packages.map(p => (
                   <div key={p.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-                    <img src={p.image_url} alt={p.name} className="card-img" style={{ height: 160 }} />
+                    <img 
+                      src={p.image_url} 
+                      alt={p.name} 
+                      className="card-img" 
+                      style={{ height: 160 }} 
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80';
+                      }}
+                    />
                     <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <h3 className="card-title">{p.name}</h3>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 'var(--space-sm)' }}>
                         {p.duration_days} Days • Max {p.max_group_size} people
                       </div>
                       <div className="price" style={{ margin: 'var(--space-md) 0' }}>
-                        ${p.base_price.toLocaleString()}<span>/person</span>
+                        ${Number(p.base_price || 0).toLocaleString()}<span>/person</span>
                       </div>
                       <div style={{ marginTop: 'auto' }}>
                         <Link to={`/book/${p.id}`} className="btn btn-primary w-full">Book Now</Link>
@@ -96,14 +114,24 @@ export default function DestinationDetailPage() {
             <div className="grid grid-2" style={{ marginBottom: 'var(--space-3xl)' }}>
               {hotels.map(h => (
                 <div key={h.id} className="card">
-                  <img src={h.image_url} alt={h.name} className="card-img" style={{ height: 160 }} />
+                  <img 
+                    src={h.image_url} 
+                    alt={h.name} 
+                    className="card-img" 
+                    style={{ height: 160 }} 
+                    loading="lazy"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
+                    }}
+                  />
                   <div className="card-body">
                     <div className="flex justify-between items-center mb-sm">
                       <h3 className="card-title" style={{ margin: 0 }}>{h.name}</h3>
                       <span className="badge badge-standard">{h.category}</span>
                     </div>
                     <div className="stars" style={{ marginBottom: 'var(--space-sm)' }}>★ {h.rating}</div>
-                    <div className="price price-small">${h.price_per_night.toLocaleString()}<span>/night</span></div>
+                    <div className="price price-small">${Number(h.price_per_night || 0).toLocaleString()}<span>/night</span></div>
                   </div>
                 </div>
               ))}

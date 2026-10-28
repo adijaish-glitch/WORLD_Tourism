@@ -114,6 +114,9 @@ export default function App() {
               <Route path="/booking-confirmation" element={
                 <ProtectedRoute><BookingConfirmationPage /></ProtectedRoute>
               } />
+              <Route path="/booking/confirmation" element={
+                <ProtectedRoute><BookingConfirmationPage /></ProtectedRoute>
+              } />
               <Route path="/dashboard" element={
                 <ProtectedRoute><CustomerDashboard /></ProtectedRoute>
               } />

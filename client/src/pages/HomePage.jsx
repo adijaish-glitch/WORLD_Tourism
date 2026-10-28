@@ -5,22 +5,62 @@ import { packagesAPI, hotelsAPI } from '../api/client';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [featuredPackages, setFeaturedPackages] = useState([]);
+  const [featuredPackages, setFeaturedPackages] = useState([
+    {
+      id: 1,
+      name: 'Paris Romance & Eiffel Luxury Getaway',
+      destination_name: 'Paris, France',
+      duration_days: 6,
+      base_price: 1850,
+      image_url: '/images/paris.svg',
+      hotel_name: 'Le Grand Paris Hotel'
+    },
+    {
+      id: 2,
+      name: 'Dubai Desert Safari & Sky High Oasis',
+      destination_name: 'Dubai, UAE',
+      duration_days: 5,
+      base_price: 1450,
+      image_url: '/images/dubai.svg',
+      hotel_name: 'Burj View Palms Resort'
+    },
+    {
+      id: 3,
+      name: 'Maldives Overwater Sanctuary',
+      destination_name: 'Maldives',
+      duration_days: 7,
+      base_price: 2400,
+      image_url: '/images/maldives.svg',
+      hotel_name: 'Crystal Lagoon Water Villas'
+    },
+    {
+      id: 4,
+      name: 'Swiss Alps Mountain Expedition',
+      destination_name: 'Interlaken, Switzerland',
+      duration_days: 6,
+      base_price: 2100,
+      image_url: 'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&q=80&w=800',
+      hotel_name: 'Alpine Panoramic Lodge'
+    }
+  ]);
   const [featuredHotels, setFeaturedHotels] = useState([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const [loadingData, setLoadingData] = useState(false);
 
   useEffect(() => {
     Promise.all([
       packagesAPI.list({ limit: 4 }).catch(() => ({ data: { packages: [] } })),
       hotelsAPI.list({ limit: 4 }).catch(() => ({ data: { hotels: [] } }))
     ]).then(([pkgRes, hotelRes]) => {
-      setFeaturedPackages(pkgRes.data?.packages || []);
-      setFeaturedHotels(hotelRes.data?.hotels || []);
-      setLoadingData(false);
+      if (pkgRes.data?.packages && pkgRes.data.packages.length > 0) {
+        setFeaturedPackages(pkgRes.data.packages);
+      }
+      if (hotelRes.data?.hotels && hotelRes.data.hotels.length > 0) {
+        setFeaturedHotels(hotelRes.data.hotels);
+      }
     });
   }, []);
 
-  const fallbackImg = '/forest-bg.jpg';
+  const fallbackImg = '/images/placeholder.svg';
 
   return (
     <>
@@ -261,10 +301,12 @@ export default function HomePage() {
         <div className="almanac-card" style={{ zIndex: 10 }}>
           <div className="almanac-image-wrapper">
             <img
-              src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&q=80&w=800"
+              src="/images/paris.svg"
               alt="Paris"
               className="almanac-image"
-              onError={e => { e.currentTarget.src = fallbackImg; }}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }}
             />
           </div>
           <div className="almanac-content">
@@ -283,10 +325,12 @@ export default function HomePage() {
         <div className="almanac-card" style={{ zIndex: 11, top: '140px' }}>
           <div className="almanac-image-wrapper">
             <img
-              src="https://images.unsplash.com/photo-1512453979498-5ea266f8e320?auto=format&fit=crop&q=80&w=800"
+              src="/images/dubai.svg"
               alt="Dubai"
               className="almanac-image"
-              onError={e => { e.currentTarget.src = fallbackImg; }}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }}
             />
           </div>
           <div className="almanac-content">
@@ -305,10 +349,12 @@ export default function HomePage() {
         <div className="almanac-card" style={{ zIndex: 12, top: '160px' }}>
           <div className="almanac-image-wrapper">
             <img
-              src="https://images.unsplash.com/photo-1498307833015-e7b400441eb8?auto=format&fit=crop&q=80&w=800"
+              src="/images/maldives.svg"
               alt="Maldives"
               className="almanac-image"
-              onError={e => { e.currentTarget.src = fallbackImg; }}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }}
             />
           </div>
           <div className="almanac-content">
@@ -333,32 +379,32 @@ export default function HomePage() {
         
         <div className="polaroid-gallery">
           <Link to="/destinations?category=Mountains" className="polaroid" style={{ top: '10%', left: '10%', transform: 'rotate(-15deg)', zIndex: 1 }}>
-            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80" alt="Mountains" className="polaroid-img" onError={e => { e.currentTarget.src = fallbackImg; }} />
+            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80" alt="Mountains" className="polaroid-img" loading="lazy" referrerPolicy="no-referrer" onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }} />
             <div className="polaroid-caption">Mountains</div>
           </Link>
 
           <Link to="/destinations?category=Beaches" className="polaroid" style={{ top: '40%', left: '25%', transform: 'rotate(8deg)', zIndex: 2 }}>
-            <img src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=600&q=80" alt="Beaches" className="polaroid-img" onError={e => { e.currentTarget.src = fallbackImg; }} />
+            <img src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=600&q=80" alt="Beaches" className="polaroid-img" loading="lazy" referrerPolicy="no-referrer" onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }} />
             <div className="polaroid-caption">Beaches</div>
           </Link>
 
           <Link to="/destinations?category=Historical" className="polaroid" style={{ top: '15%', left: '40%', transform: 'rotate(-5deg)', zIndex: 3 }}>
-            <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80" alt="Historical" className="polaroid-img" onError={e => { e.currentTarget.src = fallbackImg; }} />
+            <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80" alt="Historical" className="polaroid-img" loading="lazy" referrerPolicy="no-referrer" onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }} />
             <div className="polaroid-caption">Historical</div>
           </Link>
 
           <Link to="/destinations?category=Religious" className="polaroid" style={{ top: '50%', left: '55%', transform: 'rotate(-12deg)', zIndex: 4 }}>
-            <img src="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=600&q=80" alt="Religious" className="polaroid-img" onError={e => { e.currentTarget.src = fallbackImg; }} />
+            <img src="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=600&q=80" alt="Religious" className="polaroid-img" loading="lazy" referrerPolicy="no-referrer" onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }} />
             <div className="polaroid-caption">Religious Places</div>
           </Link>
 
           <Link to="/destinations?category=Plains" className="polaroid" style={{ top: '20%', right: '15%', transform: 'rotate(18deg)', zIndex: 1 }}>
-            <img src="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=600&q=80" alt="Plains" className="polaroid-img" onError={e => { e.currentTarget.src = fallbackImg; }} />
+            <img src="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=600&q=80" alt="Plains" className="polaroid-img" loading="lazy" referrerPolicy="no-referrer" onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }} />
             <div className="polaroid-caption">Plains</div>
           </Link>
 
           <Link to="/destinations?category=Forests" className="polaroid" style={{ top: '60%', right: '5%', transform: 'rotate(-8deg)', zIndex: 2 }}>
-            <img src="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80" alt="Forests" className="polaroid-img" onError={e => { e.currentTarget.src = fallbackImg; }} />
+            <img src="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80" alt="Forests" className="polaroid-img" loading="lazy" referrerPolicy="no-referrer" onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }} />
             <div className="polaroid-caption">Forests</div>
           </Link>
         </div>

@@ -11,13 +11,11 @@
     "db:seed": "cd server && npm run seed",
     "db:setup": "cd server && npm run migrate && npm run seed",
     "build": "cd client && npm run build",
-    "render:build": "npm install && cd client && npm install && npm run build && cd ../server && npm install",
+    "render:build": "npm install --include=dev && cd client && npm install --include=dev && npm run build && cd ../server && npm install --include=dev",
     "start": "node server/src/app.js"
   },
-  "devDependencies": {
-    "concurrently": "^9.0.1"
-  },
   "dependencies": {
+    "concurrently": "^9.0.1",
     "pptxgenjs": "^4.0.1"
   }
 }

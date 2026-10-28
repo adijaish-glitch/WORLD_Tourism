@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="maldivesSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="60%" stop-color="#bae6fd" />
+      <stop offset="100%" stop-color="#fef08a" />
+    </linearGradient>
+    <linearGradient id="turquoiseOcean" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2dd4bf" />
+      <stop offset="40%" stop-color="#0d9488" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="340" fill="url(#maldivesSky)" />
+  <circle cx="680" cy="140" r="50" fill="#fde047" opacity="0.9" />
+  
+  <!-- Ocean -->
+  <rect y="340" width="800" height="260" fill="url(#turquoiseOcean)" />
+  
+  <!-- Tropical Island Sand Spit -->
+  <path d="M 0 460 Q 240 400 480 440 T 800 420 L 800 600 L 0 600 Z" fill="#fef3c7" />
+  <path d="M 120 450 Q 220 435 340 455 Z" fill="#fde68a" />
+  
+  <!-- Palm Trees Silhouette -->
+  <!-- Trunk 1 -->
+  <path d="M 160 480 Q 185 360 210 260" stroke="#78350f" stroke-width="8" stroke-linecap="round" fill="none" />
+  <!-- Palm leaves -->
+  <path d="M 210 260 Q 150 240 120 270" stroke="#15803d" stroke-width="5" fill="none" />
+  <path d="M 210 260 Q 180 200 160 210" stroke="#16a34a" stroke-width="5" fill="none" />
+  <path d="M 210 260 Q 230 190 260 215" stroke="#15803d" stroke-width="5" fill="none" />
+  <path d="M 210 260 Q 270 240 290 275" stroke="#16a34a" stroke-width="5" fill="none" />
+  <path d="M 210 260 Q 220 265 240 310" stroke="#15803d" stroke-width="5" fill="none" />
+
+  <!-- Overwater Villa Deck -->
+  <rect x="520" y="380" width="110" height="40" rx="3" fill="#b45309" />
+  <polygon points="510,380 575,320 640,380" fill="#78350f" />
+  <!-- Stilts into turquoise water -->
+  <line x1="535" y1="420" x2="535" y2="470" stroke="#451a03" stroke-width="4" />
+  <line x1="575" y1="420" x2="575" y2="475" stroke="#451a03" stroke-width="4" />
+  <line x1="615" y1="420" x2="615" y2="470" stroke="#451a03" stroke-width="4" />
+
+  <text x="400" y="575" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="700" text-anchor="middle" letter-spacing="3">MALDIVES</text>
+</svg>

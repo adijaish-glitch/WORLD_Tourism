@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="dubaiSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0c4a6e" />
+      <stop offset="50%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#fbbf24" />
+    </linearGradient>
+    <linearGradient id="burjGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#64748b" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#dubaiSky)" />
+  <!-- Desert Dunes -->
+  <path d="M 0 450 Q 200 400 450 480 T 800 460 L 800 600 L 0 600 Z" fill="#d97706" opacity="0.9" />
+  <path d="M 0 500 Q 300 460 600 520 T 800 490 L 800 600 L 0 600 Z" fill="#b45309" />
+  
+  <!-- Modern Skylines -->
+  <rect x="220" y="320" width="45" height="200" rx="4" fill="url(#burjGrad)" opacity="0.75" />
+  <rect x="280" y="270" width="55" height="250" rx="4" fill="url(#burjGrad)" opacity="0.85" />
+  <rect x="470" y="300" width="50" height="220" rx="4" fill="url(#burjGrad)" opacity="0.8" />
+  <rect x="540" y="340" width="60" height="180" rx="4" fill="url(#burjGrad)" opacity="0.7" />
+  
+  <!-- Burj Khalifa Central Spire -->
+  <polygon points="398,70 402,70 404,180 396,180" fill="#f8fafc" />
+  <polygon points="394,180 406,180 412,310 388,310" fill="#e2e8f0" />
+  <polygon points="384,310 416,310 426,490 374,490" fill="#cbd5e1" />
+  <line x1="400" y1="40" x2="400" y2="70" stroke="#f8fafc" stroke-width="3" />
+  <circle cx="400" cy="40" r="3" fill="#fef08a" />
+  
+  <text x="400" y="575" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="700" text-anchor="middle" letter-spacing="3">DUBAI, UAE</text>
+</svg>

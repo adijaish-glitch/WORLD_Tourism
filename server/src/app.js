@@ -29,7 +29,22 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://accounts.google.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
+      connectSrc: ["'self'", "https:", "http:", "ws:", "wss:"],
+      fontSrc: ["'self'", "https:", "data:", "https://fonts.gstatic.com"],
+      objectSrc: ["'none'"],
+      frameSrc: ["'self'", "https://accounts.google.com"],
+      upgradeInsecureRequests: []
+    }
+  }
+}));
 
 // CORS setup allowing credentials for HttpOnly cookies
 const allowedOrigins = [

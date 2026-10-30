@@ -441,7 +441,8 @@ export function LoginPage() {
   return (
     <div className="page container printer-container">
       <div className="printer-slit"></div>
-      <div className="receipt-wrapper">
+      <div className="receipt-chamber">
+        <div className="receipt-wrapper">
         <div className="receipt-card">
           <div className="receipt-header">
             <div className="receipt-kiosk-row">
@@ -691,6 +692,7 @@ export function LoginPage() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
@@ -887,7 +889,8 @@ export function RegisterPage() {
   return (
     <div className="page container printer-container">
       <div className="printer-slit"></div>
-      <div className="receipt-wrapper">
+      <div className="receipt-chamber">
+        <div className="receipt-wrapper">
         <div className="receipt-card">
           <div className="receipt-header">
             <div className="receipt-kiosk-row">
@@ -1120,6 +1123,7 @@ export function RegisterPage() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
@@ -1162,7 +1166,8 @@ export function ForgotPasswordPage() {
   return (
     <div className="page container printer-container">
       <div className="printer-slit"></div>
-      <div className="receipt-wrapper">
+      <div className="receipt-chamber">
+        <div className="receipt-wrapper">
         <div className="receipt-card">
           <div className="receipt-header">
             <h1 className="receipt-title">Pass Recovery</h1>
@@ -1243,6 +1248,7 @@ export function ForgotPasswordPage() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
@@ -1307,7 +1313,8 @@ export function ResetPasswordPage() {
   return (
     <div className="page container printer-container">
       <div className="printer-slit"></div>
-      <div className="receipt-wrapper">
+      <div className="receipt-chamber">
+        <div className="receipt-wrapper">
         <div className="receipt-card">
           <div className="receipt-header">
             <h1 className="receipt-title">Reset Security Key</h1>
@@ -1441,6 +1448,7 @@ export function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
@@ -1511,7 +1519,8 @@ export function VerifyEmailPage() {
   return (
     <div className="page container printer-container">
       <div className="printer-slit"></div>
-      <div className="receipt-wrapper">
+      <div className="receipt-chamber">
+        <div className="receipt-wrapper">
         <div className="receipt-card">
           <div className="receipt-header">
             <h1 className="receipt-title">Email Verification</h1>
@@ -1610,5 +1619,6 @@ export function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  </div>
   );
 }

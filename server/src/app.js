@@ -24,6 +24,7 @@ const reportController = require('./controllers/reportController');
 const reviewController = require('./controllers/reviewController');
 const countryController = require('./controllers/countryController');
 const travelController = require('./controllers/travelController');
+const accountController = require('./controllers/accountController');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -198,13 +199,65 @@ app.post('/api/travel/offers', authenticate, adminOnly, travelController.createO
 app.put('/api/travel/offers/:id', authenticate, adminOnly, travelController.updateOffer);
 app.delete('/api/travel/offers/:id', authenticate, adminOnly, travelController.deleteOffer);
 
+// ─── COMPLETE ACCOUNT MANAGEMENT ROUTES ───
+// Profile & Preferences
+app.get('/api/account/profile', authenticate, accountController.getProfile);
+app.put('/api/account/profile', authenticate, accountController.updateProfile);
+
+// Twilio SMS Phone Verification
+app.post('/api/account/phone/send-otp', authenticate, authLimiter, accountController.sendPhoneOtp);
+app.post('/api/account/phone/verify-otp', authenticate, authLimiter, accountController.verifyPhoneOtp);
+
+// Wishlist & Saved Places
+app.get('/api/account/wishlist', authenticate, accountController.getWishlist);
+app.post('/api/account/wishlist', authenticate, accountController.addToWishlist);
+app.delete('/api/account/wishlist/:id', authenticate, accountController.removeFromWishlist);
+
+// Saved Travellers
+app.get('/api/account/travellers', authenticate, accountController.getTravellers);
+app.post('/api/account/travellers', authenticate, accountController.addTraveller);
+app.put('/api/account/travellers/:id', authenticate, accountController.updateTraveller);
+app.delete('/api/account/travellers/:id', authenticate, accountController.deleteTraveller);
+
+// Login & Security
+app.get('/api/account/security', authenticate, accountController.getSecurityOverview);
+app.post('/api/account/change-password', authenticate, authLimiter, accountController.changePassword);
+app.post('/api/account/delete', authenticate, authLimiter, accountController.deleteAccount);
+
+// Notifications
+app.get('/api/account/notifications', authenticate, accountController.getNotifications);
+app.put('/api/account/notifications/:id/read', authenticate, accountController.markNotificationRead);
+
+// Support & Concierge Tickets
+app.get('/api/account/tickets', authenticate, accountController.getTickets);
+app.post('/api/account/tickets', authenticate, accountController.createTicket);
+app.get('/api/account/tickets/:id', authenticate, accountController.getTicketDetails);
+app.post('/api/account/tickets/:id/reply', authenticate, accountController.replyToTicket);
+app.put('/api/account/tickets/:id/status', authenticate, accountController.updateTicketStatus);
+
+// Admin Support Ticket Management
+app.get('/api/admin/tickets', authenticate, adminOnly, accountController.adminListTickets);
+app.get('/api/admin/tickets/:id', authenticate, adminOnly, accountController.adminGetTicket);
+app.post('/api/admin/tickets/:id/reply', authenticate, adminOnly, accountController.adminReplyTicket);
+app.put('/api/admin/tickets/:id/status', authenticate, adminOnly, accountController.adminUpdateTicketStatus);
+
 // ─── SERVE FRONTEND CLIENT (Single Fullstack Deployment / SPA Routing) ───
 const clientDistPath = path.resolve(__dirname, '../../client/dist');
 const rootDistPath = path.resolve(__dirname, '../../');
+const clientPublicImages = path.resolve(__dirname, '../../client/public/images');
+const rootImages = path.resolve(__dirname, '../../images');
+
+if (fs.existsSync(clientPublicImages)) {
+  app.use('/images', express.static(clientPublicImages));
+}
+if (fs.existsSync(rootImages)) {
+  app.use('/images', express.static(rootImages));
+}
 
 if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
-} else if (fs.existsSync(path.join(rootDistPath, 'index.html'))) {
+}
+if (fs.existsSync(rootDistPath)) {
   app.use(express.static(rootDistPath));
 }
 

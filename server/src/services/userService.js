@@ -26,8 +26,8 @@ function queryOne(sql, params = []) {
 function runSql(sql, params = []) {
   const db = getDb();
   db.run(sql, params);
-  saveDb();
   const res = db.exec("SELECT last_insert_rowid()");
+  saveDb();
   return { lastID: res[0]?.values[0]?.[0] };
 }
 
@@ -339,6 +339,17 @@ class UserService {
       if (updateData.full_name !== undefined) { fields.push('full_name = ?'); params.push(updateData.full_name); }
       if (updateData.username !== undefined) { fields.push('username = ?'); params.push(updateData.username); }
       if (updateData.phone !== undefined) { fields.push('phone = ?'); params.push(updateData.phone); }
+      if (updateData.phone_verified !== undefined) { fields.push('phone_verified = ?'); params.push(updateData.phone_verified ? 1 : 0); }
+      if (updateData.language !== undefined) { fields.push('language = ?'); params.push(updateData.language); }
+      if (updateData.currency !== undefined) { fields.push('currency = ?'); params.push(updateData.currency); }
+      if (updateData.travel_preferences !== undefined) {
+        fields.push('travel_preferences = ?');
+        params.push(typeof updateData.travel_preferences === 'string' ? updateData.travel_preferences : JSON.stringify(updateData.travel_preferences));
+      }
+      if (updateData.notification_preferences !== undefined) {
+        fields.push('notification_preferences = ?');
+        params.push(typeof updateData.notification_preferences === 'string' ? updateData.notification_preferences : JSON.stringify(updateData.notification_preferences));
+      }
       if (updateData.avatar_url !== undefined) { fields.push('avatar_url = ?'); params.push(updateData.avatar_url); }
       if (updateData.password !== undefined) { fields.push('password = ?'); params.push(updateData.password); }
       if (updateData.role !== undefined) { fields.push('role = ?'); params.push(updateData.role); }
@@ -492,12 +503,41 @@ class UserService {
 
   // Format SQLite row
   _formatSqlRow(row) {
+    let travel_preferences = {};
+    let notification_preferences = {
+      booking_updates: true,
+      sms_alerts: true,
+      travel_reminders: true,
+      promotions: false
+    };
+
+    try {
+      if (row.travel_preferences) {
+        travel_preferences = typeof row.travel_preferences === 'string'
+          ? JSON.parse(row.travel_preferences)
+          : row.travel_preferences;
+      }
+    } catch (e) {}
+
+    try {
+      if (row.notification_preferences) {
+        notification_preferences = typeof row.notification_preferences === 'string'
+          ? JSON.parse(row.notification_preferences)
+          : row.notification_preferences;
+      }
+    } catch (e) {}
+
     return {
       ...row,
       id: row.id,
       sqlite_id: row.id,
       email_verified: Boolean(row.email_verified),
-      is_active: Boolean(row.is_active)
+      phone_verified: Boolean(row.phone_verified),
+      is_active: Boolean(row.is_active),
+      language: row.language || 'en',
+      currency: row.currency || 'USD',
+      travel_preferences,
+      notification_preferences
     };
   }
 }

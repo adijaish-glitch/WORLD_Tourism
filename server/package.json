@@ -7,7 +7,7 @@
     "start": "node src/app.js",
     "migrate": "node src/db/migrate.js",
     "seed": "node src/seeds/seed.js",
-    "test": "node test_auth.js && node test_http_auth.js && node test_oauth_google.js && node test_booking.js && node test_travel_inventory.js"
+    "test": "node test_auth.js && node test_http_auth.js && node test_oauth_google.js && node test_booking.js && node test_travel_inventory.js && node test_twilio.js && node test_account_system.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

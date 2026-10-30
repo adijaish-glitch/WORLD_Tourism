@@ -18,6 +18,7 @@ import CustomerDashboard from './pages/CustomerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AboutPage from './pages/AboutPage';
 import ProfilePage from './pages/ProfilePage';
+import AccountPage from './pages/AccountPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -124,10 +125,13 @@ export default function App() {
                 <ProtectedRoute><BookingConfirmationPage /></ProtectedRoute>
               } />
               <Route path="/dashboard" element={
-                <ProtectedRoute><CustomerDashboard /></ProtectedRoute>
+                <ProtectedRoute><AccountPage /></ProtectedRoute>
               } />
               <Route path="/profile" element={
-                <ProtectedRoute><ProfilePage /></ProtectedRoute>
+                <ProtectedRoute><AccountPage /></ProtectedRoute>
+              } />
+              <Route path="/account" element={
+                <ProtectedRoute><AccountPage /></ProtectedRoute>
               } />
               
               <Route path="/admin" element={

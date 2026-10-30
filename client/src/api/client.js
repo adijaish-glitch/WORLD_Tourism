@@ -135,4 +135,32 @@ export const travelAPI = {
   deleteOffer: (id) => API.delete(`/travel/offers/${id}`),
 };
 
+export const accountAPI = {
+  getProfile: () => API.get('/account/profile'),
+  updateProfile: (data) => API.put('/account/profile', data),
+  sendPhoneOtp: (phone) => API.post('/account/phone/send-otp', { phone }),
+  verifyPhoneOtp: (phone, otp) => API.post('/account/phone/verify-otp', { phone, otp }),
+  getWishlist: () => API.get('/account/wishlist'),
+  addToWishlist: (item) => API.post('/account/wishlist', item),
+  removeFromWishlist: (id) => API.delete(`/account/wishlist/${id}`),
+  getTravellers: () => API.get('/account/travellers'),
+  addTraveller: (data) => API.post('/account/travellers', data),
+  updateTraveller: (id, data) => API.put(`/account/travellers/${id}`, data),
+  deleteTraveller: (id) => API.delete(`/account/travellers/${id}`),
+  getSecurity: () => API.get('/account/security'),
+  changePassword: (data) => API.post('/account/change-password', data),
+  deleteAccount: (data) => API.post('/account/delete', data),
+  getNotifications: () => API.get('/account/notifications'),
+  markNotificationRead: (id) => API.put(`/account/notifications/${id}/read`),
+  getTickets: () => API.get('/account/tickets'),
+  getTicketDetails: (id) => API.get(`/account/tickets/${id}`),
+  createTicket: (data) => API.post('/account/tickets', data),
+  replyTicket: (id, data) => API.post(`/account/tickets/${id}/reply`, data),
+  updateTicketStatus: (id, status) => API.put(`/account/tickets/${id}/status`, { status }),
+  adminListTickets: () => API.get('/admin/tickets'),
+  adminGetTicket: (id) => API.get(`/admin/tickets/${id}`),
+  adminReplyTicket: (id, data) => API.post(`/admin/tickets/${id}/reply`, data),
+  adminUpdateTicketStatus: (id, status) => API.put(`/admin/tickets/${id}/status`, { status }),
+};
+
 export default API;

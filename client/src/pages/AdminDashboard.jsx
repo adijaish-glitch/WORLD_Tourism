@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { reportsAPI, bookingsAPI, usersAPI, travelAPI } from '../api/client';
+import { reportsAPI, bookingsAPI, usersAPI, travelAPI, accountAPI } from '../api/client';
 import { useAuth } from '../features/auth/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useToast } from '../components/ui/ToastContext';
@@ -16,20 +16,24 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [providers, setProviders] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [tickets, setTickets] = useState([]);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [adminReplyText, setAdminReplyText] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [stRes, revRes, occRes, bookRes, userRes, provRes, auditRes] = await Promise.all([
+      const [stRes, revRes, occRes, bookRes, userRes, provRes, auditRes, tktRes] = await Promise.all([
         reportsAPI.summary(),
         reportsAPI.revenue(),
         reportsAPI.occupancy(),
         bookingsAPI.list({ limit: 20 }),
         usersAPI.list(),
         travelAPI.providers().catch(() => ({ data: { providers: [] } })),
-        travelAPI.auditLogs({ limit: 30 }).catch(() => ({ data: { logs: [] } }))
+        travelAPI.auditLogs({ limit: 30 }).catch(() => ({ data: { logs: [] } })),
+        accountAPI.adminListTickets().catch(() => ({ data: { tickets: [] } }))
       ]);
       setStats(stRes.data.stats);
       setRevenue(revRes.data.data);
@@ -38,6 +42,7 @@ export default function AdminDashboard() {
       setUsers(userRes.data.users);
       setProviders(provRes.data.providers || []);
       setAuditLogs(auditRes.data.logs || []);
+      setTickets(tktRes.data.tickets || []);
     } catch (err) {
       console.error(err);
     }
@@ -88,6 +93,7 @@ export default function AdminDashboard() {
         {[
           { id: 'overview', label: 'Overview & Metrics' },
           { id: 'bookings', label: 'Direct Bookings' },
+          { id: 'tickets', label: `Support Tickets (${tickets.filter(t => t.status !== 'closed').length})` },
           { id: 'providers', label: 'Travel Integrations' },
           { id: 'audit', label: 'Security Audit Logs' },
           { id: 'users', label: 'User Directory' }
@@ -327,6 +333,177 @@ export default function AdminDashboard() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: SUPPORT CONCIERGE TICKETS */}
+      {activeTab === 'tickets' && (
+        <div className="animation-fade">
+          <div style={{ display: 'grid', gridTemplateColumns: selectedTicket ? '1fr 1.2fr' : '1fr', gap: '1.5rem' }}>
+            <div className="card">
+              <div className="card-body">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>Customer Support Requests</h3>
+                  <span className="badge badge-standard">{tickets.length} Total</span>
+                </div>
+
+                {tickets.length === 0 ? (
+                  <p style={{ color: '#71717a' }}>No support requests logged.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {tickets.map(t => (
+                      <div
+                        key={t.id}
+                        onClick={async () => {
+                          try {
+                            const res = await accountAPI.adminGetTicket(t.id);
+                            setSelectedTicket(res.data);
+                          } catch (err) {
+                            error('Failed to load ticket details');
+                          }
+                        }}
+                        style={{
+                          padding: '1rem',
+                          borderRadius: '12px',
+                          border: selectedTicket?.ticket?.id === t.id ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                          background: selectedTicket?.ticket?.id === t.id ? '#eff6ff' : '#f8fafc',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                          <strong style={{ fontSize: '0.85rem', color: '#0f172a' }}>#{t.ticket_number}</strong>
+                          <span style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            padding: '0.15rem 0.5rem',
+                            borderRadius: '999px',
+                            background: t.status === 'open' ? '#dbeafe' : t.status === 'resolved' ? '#dcfce7' : t.status === 'closed' ? '#f1f5f9' : '#fef3c7',
+                            color: t.status === 'open' ? '#1d4ed8' : t.status === 'resolved' ? '#15803d' : t.status === 'closed' ? '#64748b' : '#b45309'
+                          }}>
+                            {t.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', fontWeight: 700 }}>{t.subject}</h4>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
+                          Traveler: {t.user_name} ({t.user_email}) ∙ {t.booking_reference ? `Ref #${t.booking_reference}` : 'General'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {selectedTicket && (
+              <div className="card">
+                <div className="card-body">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
+                    <div>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#2563eb' }}>
+                        #{selectedTicket.ticket.ticket_number} ∙ Category: {selectedTicket.ticket.category}
+                      </span>
+                      <h3 style={{ margin: '0.25rem 0', fontSize: '1.2rem', fontWeight: 800 }}>{selectedTicket.ticket.subject}</h3>
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+                        From: {selectedTicket.ticket.user_name} ({selectedTicket.ticket.user_email}) ∙ {selectedTicket.ticket.booking_reference && `Booking Ref: ${selectedTicket.ticket.booking_reference}`}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <select
+                        value={selectedTicket.ticket.status}
+                        onChange={async (e) => {
+                          const newStatus = e.target.value;
+                          try {
+                            await accountAPI.adminUpdateTicketStatus(selectedTicket.ticket.id, newStatus);
+                            success(`Status updated to ${newStatus}`);
+                            setSelectedTicket(prev => ({ ...prev, ticket: { ...prev.ticket, status: newStatus } }));
+                            fetchData();
+                          } catch (err) {
+                            error('Failed to update status');
+                          }
+                        }}
+                        style={{ padding: '0.35rem 0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem', fontWeight: 600 }}
+                      >
+                        <option value="open">Open</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="awaiting_user_response">Awaiting User Response</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Thread messages */}
+                  <div style={{ maxHeight: '280px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem', padding: '0.5rem' }}>
+                    {selectedTicket.messages?.map(m => {
+                      const isSupport = m.sender_type === 'support';
+                      return (
+                        <div
+                          key={m.id}
+                          style={{
+                            alignSelf: isSupport ? 'flex-end' : 'flex-start',
+                            maxWidth: '85%',
+                            background: isSupport ? '#eff6ff' : '#f8fafc',
+                            border: '1px solid',
+                            borderColor: isSupport ? '#bfdbfe' : '#e2e8f0',
+                            padding: '0.85rem',
+                            borderRadius: '12px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.2rem' }}>
+                            <strong style={{ fontSize: '0.8rem', color: isSupport ? '#1d4ed8' : '#0f172a' }}>
+                              {m.sender_name} {isSupport && '🛡️'}
+                            </strong>
+                            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                              {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: 1.4 }}>
+                            {m.message}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Reply Form */}
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!adminReplyText.trim()) return;
+                      try {
+                        const res = await accountAPI.adminReplyTicket(selectedTicket.ticket.id, {
+                          message: adminReplyText,
+                          status: 'awaiting_user_response'
+                        });
+                        setSelectedTicket(res.data);
+                        setAdminReplyText('');
+                        success('Reply dispatched to customer');
+                        fetchData();
+                      } catch (err) {
+                        error('Failed to send reply');
+                      }
+                    }}
+                    style={{ display: 'flex', gap: '0.75rem' }}
+                  >
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Write concierge reply to traveler..."
+                      value={adminReplyText}
+                      onChange={e => setAdminReplyText(e.target.value)}
+                      style={{ flex: 1, margin: 0 }}
+                      required
+                    />
+                    <button type="submit" className="btn btn-primary" style={{ padding: '0.6rem 1.25rem', fontWeight: 700, borderRadius: '10px' }}>
+                      Send Reply
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

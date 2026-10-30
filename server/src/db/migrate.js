@@ -30,6 +30,11 @@ function migrate() {
     { name: 'username', type: 'TEXT' },
     { name: 'avatar_url', type: 'TEXT' },
     { name: 'email_verified', type: 'INTEGER DEFAULT 0' },
+    { name: 'phone_verified', type: 'INTEGER DEFAULT 0' },
+    { name: 'language', type: "TEXT DEFAULT 'en'" },
+    { name: 'currency', type: "TEXT DEFAULT 'USD'" },
+    { name: 'travel_preferences', type: "TEXT DEFAULT '{}'" },
+    { name: 'notification_preferences', type: "TEXT DEFAULT '{\"booking_updates\":true,\"sms_alerts\":true,\"travel_reminders\":true,\"promotions\":false}'" },
     { name: 'verification_token', type: 'TEXT' },
     { name: 'reset_token', type: 'TEXT' },
     { name: 'reset_token_expires', type: 'DATETIME' },
@@ -251,6 +256,93 @@ function migrate() {
     )
   `);
 
+  // Wishlist & Saved Places
+  db.run(`
+    CREATE TABLE IF NOT EXISTS wishlist_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      item_type TEXT NOT NULL CHECK(item_type IN ('destination', 'hotel', 'package')),
+      item_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      subtitle TEXT,
+      image_url TEXT,
+      price REAL,
+      rating REAL,
+      link_url TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, item_type, item_id),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Saved Travellers
+  db.run(`
+    CREATE TABLE IF NOT EXISTS saved_travellers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      first_name TEXT NOT NULL,
+      last_name TEXT NOT NULL,
+      date_of_birth TEXT,
+      gender TEXT DEFAULT 'unspecified' CHECK(gender IN ('male', 'female', 'other', 'unspecified')),
+      phone TEXT,
+      email TEXT,
+      traveler_type TEXT DEFAULT 'adult' CHECK(traveler_type IN ('adult', 'child', 'infant')),
+      meal_or_dietary TEXT,
+      special_assistance TEXT,
+      is_primary INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Support Tickets
+  db.run(`
+    CREATE TABLE IF NOT EXISTS support_tickets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      ticket_number TEXT UNIQUE NOT NULL,
+      category TEXT NOT NULL CHECK(category IN ('booking_inquiry', 'cancellation', 'flight_hotel_support', 'technical_issue', 'account_security', 'other')),
+      subject TEXT NOT NULL,
+      message TEXT NOT NULL,
+      booking_reference TEXT,
+      priority TEXT DEFAULT 'normal' CHECK(priority IN ('low', 'normal', 'high', 'urgent')),
+      status TEXT DEFAULT 'open' CHECK(status IN ('open', 'in_progress', 'awaiting_user_response', 'resolved', 'closed')),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Support Ticket Messages / Conversation History
+  db.run(`
+    CREATE TABLE IF NOT EXISTS support_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ticket_id INTEGER NOT NULL,
+      sender_type TEXT NOT NULL CHECK(sender_type IN ('user', 'support', 'system')),
+      sender_id INTEGER,
+      sender_name TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE
+    )
+  `);
+
+  // User Notifications Log
+  db.run(`
+    CREATE TABLE IF NOT EXISTS user_notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      type TEXT NOT NULL CHECK(type IN ('booking', 'security', 'system', 'sms')),
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      is_read INTEGER DEFAULT 0,
+      link_url TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
   // Create performance indexes on frequently queried relational keys
   db.run("CREATE INDEX IF NOT EXISTS idx_bookings_user_id ON bookings(user_id)");
   db.run("CREATE INDEX IF NOT EXISTS idx_bookings_package_id ON bookings(package_id)");
@@ -262,6 +354,11 @@ function migrate() {
   db.run("CREATE INDEX IF NOT EXISTS idx_external_offers_cat_dest ON external_offers(category, destination)");
   db.run("CREATE INDEX IF NOT EXISTS idx_external_offers_provider ON external_offers(provider_code)");
   db.run("CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_wishlist_user ON wishlist_items(user_id)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_travellers_user ON saved_travellers(user_id)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_tickets_user ON support_tickets(user_id)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket ON support_messages(ticket_id)");
+  db.run("CREATE INDEX IF NOT EXISTS idx_notifications_user ON user_notifications(user_id)");
 
   saveDb();
   console.log('✓ Migrations applied');

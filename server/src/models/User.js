@@ -48,6 +48,27 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  language: {
+    type: String,
+    default: 'en'
+  },
+  currency: {
+    type: String,
+    default: 'USD'
+  },
+  travel_preferences: {
+    type: Object,
+    default: {}
+  },
+  notification_preferences: {
+    type: Object,
+    default: {
+      booking_updates: true,
+      sms_alerts: true,
+      travel_reminders: true,
+      promotions: false
+    }
+  },
   role: {
     type: String,
     enum: ['customer', 'admin'],

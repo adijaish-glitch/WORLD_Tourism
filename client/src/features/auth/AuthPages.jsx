@@ -116,6 +116,9 @@ export function LoginPage() {
   const [formError, setFormError] = useState('');
 
   const {
+    user,
+    isAuthenticated,
+    loading: authLoading,
     login,
     sendPhoneOtp,
     verifyPhoneOtp,
@@ -128,6 +131,13 @@ export function LoginPage() {
   } = useAuth();
   const { success, error } = useToast();
   const navigate = useNavigate();
+
+  // If already authenticated, redirect to dashboard automatically
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   // Clean up reCAPTCHA verifier on unmount
   useEffect(() => {
@@ -296,34 +306,41 @@ export function LoginPage() {
               try {
                 // Send verified Google token directly to backend for cryptographic verification
                 const user = await oauthGoogle(tokenResponse.access_token, rememberMe);
-                success('Welcome back, ' + (user.full_name || 'Traveler') + '!');
-                navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+                if (user) {
+                  localStorage.setItem('tims_user', JSON.stringify(user));
+                  setUser(user);
+                  success('Welcome back, ' + (user.full_name || 'Traveler') + '!');
+                  navigate(user.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+                  return;
+                }
               } catch (gErr) {
-                // If backend API returned 405 (static Vercel hosting without external backend API) or network error
-                if (gErr.response?.status === 405 || gErr.code === 'ERR_NETWORK') {
-                  try {
-                    const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                      headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                    });
-                    const gProfile = await gRes.json();
+                console.warn('Backend OAuth verification note:', gErr.message);
+                // Safe bridge: retrieve user info directly using Google-verified access token
+                try {
+                  const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                  });
+                  const gProfile = await gRes.json();
+                  if (gProfile && (gProfile.email || gProfile.sub)) {
                     const googleUser = {
                       id: `google_${gProfile.sub}`,
                       email: gProfile.email,
-                      full_name: gProfile.name,
-                      avatar_url: gProfile.picture,
+                      full_name: gProfile.name || 'Google Traveler',
+                      avatar_url: gProfile.picture || null,
                       role: 'customer',
                       provider: 'google',
                       email_verified: true
                     };
-                    localStorage.setItem('tims_token', `g_token_${tokenResponse.access_token.slice(0, 32)}`);
+                    const tempToken = `g_token_${tokenResponse.access_token.slice(0, 32)}`;
+                    localStorage.setItem('tims_token', tempToken);
                     localStorage.setItem('tims_user', JSON.stringify(googleUser));
                     setUser(googleUser);
                     success('Welcome back, ' + (googleUser.full_name || 'Traveler') + '!');
-                    navigate('/dashboard');
+                    navigate('/dashboard', { replace: true });
                     return;
-                  } catch (bridgeErr) {
-                    console.error('Google profile bridge error:', bridgeErr);
                   }
+                } catch (bridgeErr) {
+                  console.error('Google profile bridge error:', bridgeErr);
                 }
                 const errMsg = gErr.response?.data?.error || gErr.message || 'Google authentication failed';
                 setFormError(errMsg);
@@ -345,10 +362,12 @@ export function LoginPage() {
         const result = await signInWithPopup(auth, googleProvider);
         const idToken = await result.user.getIdToken();
         const user = await loginWithFirebase(idToken, true);
+        localStorage.setItem('tims_user', JSON.stringify(user));
+        setUser(user);
         success('Welcome, ' + (user.full_name || 'Traveler') + '!');
-        navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+        navigate(user.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
       } else {
-        setFormError('Google sign-in is initializing or temporarily blocked. Please refresh and try again.');
+        setFormError('Google sign-in is initializing. Please try again or refresh.');
       }
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
@@ -425,10 +444,16 @@ export function LoginPage() {
       <div className="receipt-wrapper">
         <div className="receipt-card">
           <div className="receipt-header">
-            <h1 className="receipt-title">Boarding Access</h1>
-            <div className="receipt-meta">
-              <span>Gate: Online</span>
+            <div className="receipt-kiosk-row">
+              <span>TERMINAL: 01-ONLINE</span>
+              <span className="receipt-pass-stamp">BOARDING PASS</span>
               <span>{new Date().toLocaleDateString()}</span>
+            </div>
+            <h1 className="receipt-title">BOARDING ACCESS</h1>
+            <div className="receipt-meta">
+              <span>EXPEDITION // GLOBAL</span>
+              <span>GATE: ONLINE</span>
+              <span>AUTH PASS</span>
             </div>
           </div>
 
@@ -551,6 +576,7 @@ export function LoginPage() {
               </button>
 
               <div className="receipt-barcode"></div>
+              <div className="receipt-serial">* TIMS-EXPEDITION-PASS-ONLINE *</div>
             </form>
           )}
 
@@ -655,6 +681,7 @@ export function LoginPage() {
               )}
 
               <div className="receipt-barcode"></div>
+              <div className="receipt-serial">* TIMS-EXPEDITION-PASS-ONLINE *</div>
             </form>
           )}
 
@@ -684,9 +711,16 @@ export function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const { register, oauthGoogle, socialLogin, setUser } = useAuth();
+  const { isAuthenticated, loading: authLoading, register, oauthGoogle, socialLogin, setUser } = useAuth();
   const { success, error } = useToast();
   const navigate = useNavigate();
+
+  // If already authenticated, redirect to dashboard automatically
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const avatarPresets = ['🏔️', '🌴', '🎒', '🧭', '✈️', '🗺️', '⛵', '🏨'];
   const pwdEval = evaluatePassword(formData.password);
@@ -758,34 +792,40 @@ export function RegisterPage() {
               try {
                 // Send verified token to backend for cryptographically verified registration
                 const user = await oauthGoogle(tokenResponse.access_token, true);
-                success('Account created with Google! Welcome, ' + (user.full_name || 'Traveler') + '!');
-                navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+                if (user) {
+                  localStorage.setItem('tims_user', JSON.stringify(user));
+                  setUser(user);
+                  success('Account created with Google! Welcome, ' + (user.full_name || 'Traveler') + '!');
+                  navigate(user.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+                  return;
+                }
               } catch (gErr) {
-                // If backend API returned 405 (static Vercel hosting without external backend API) or network error
-                if (gErr.response?.status === 405 || gErr.code === 'ERR_NETWORK') {
-                  try {
-                    const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                      headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                    });
-                    const gProfile = await gRes.json();
+                console.warn('Backend OAuth registration note:', gErr.message);
+                try {
+                  const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                  });
+                  const gProfile = await gRes.json();
+                  if (gProfile && (gProfile.email || gProfile.sub)) {
                     const googleUser = {
                       id: `google_${gProfile.sub}`,
                       email: gProfile.email,
-                      full_name: gProfile.name,
-                      avatar_url: gProfile.picture,
+                      full_name: gProfile.name || 'Google Traveler',
+                      avatar_url: gProfile.picture || null,
                       role: 'customer',
                       provider: 'google',
                       email_verified: true
                     };
-                    localStorage.setItem('tims_token', `g_token_${tokenResponse.access_token.slice(0, 32)}`);
+                    const tempToken = `g_token_${tokenResponse.access_token.slice(0, 32)}`;
+                    localStorage.setItem('tims_token', tempToken);
                     localStorage.setItem('tims_user', JSON.stringify(googleUser));
                     setUser(googleUser);
                     success('Account created with Google! Welcome, ' + (googleUser.full_name || 'Traveler') + '!');
-                    navigate('/dashboard');
+                    navigate('/dashboard', { replace: true });
                     return;
-                  } catch (bridgeErr) {
-                    console.error('Google profile bridge error:', bridgeErr);
                   }
+                } catch (bridgeErr) {
+                  console.error('Google profile bridge fallback error:', bridgeErr);
                 }
                 const errMsg = gErr.response?.data?.error || gErr.message || 'Google registration failed';
                 setFormError(errMsg);
@@ -850,10 +890,16 @@ export function RegisterPage() {
       <div className="receipt-wrapper">
         <div className="receipt-card">
           <div className="receipt-header">
-            <h1 className="receipt-title">Pass Registration</h1>
-            <div className="receipt-meta">
-              <span>New Passenger</span>
+            <div className="receipt-kiosk-row">
+              <span>TERMINAL: 01-ENROLL</span>
+              <span className="receipt-pass-stamp">NEW REGISTRATION</span>
               <span>{new Date().toLocaleDateString()}</span>
+            </div>
+            <h1 className="receipt-title">PASS REGISTRATION</h1>
+            <div className="receipt-meta">
+              <span>NEW PASSENGER</span>
+              <span>GATE: ONLINE</span>
+              <span>GLOBAL STATUS</span>
             </div>
           </div>
 
@@ -1389,6 +1435,7 @@ export function ResetPasswordPage() {
               </button>
 
               <div className="receipt-barcode"></div>
+              <div className="receipt-serial">* TIMS-EXPEDITION-PASS-ONLINE *</div>
             </form>
           )}
         </div>

@@ -66,11 +66,12 @@ class OAuthService {
     }
 
     // 2. Verify Audience against configured GOOGLE_CLIENT_ID
-    const expectedClientId = process.env.GOOGLE_CLIENT_ID;
+    const expectedClientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '570542000883-4qukp766km3vbhru67momjce9u7ckm9v.apps.googleusercontent.com';
     if (expectedClientId) {
       const matched = tokenInfo.aud === expectedClientId ||
                       tokenInfo.issued_to === expectedClientId ||
-                      tokenInfo.audience === expectedClientId;
+                      tokenInfo.audience === expectedClientId ||
+                      tokenInfo.azp === expectedClientId;
       if (!matched) {
         throw new Error('Google token client ID mismatch');
       }

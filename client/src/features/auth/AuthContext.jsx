@@ -61,6 +61,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (identifier, password, rememberMe = false) => {
     const res = await authAPI.login(identifier, password, rememberMe);
     saveToken(res.data.token, rememberMe);
+    if (res.data.user) {
+      localStorage.setItem('tims_user', JSON.stringify(res.data.user));
+    }
     setUser(res.data.user);
     return res.data.user;
   };
@@ -72,6 +75,7 @@ export const AuthProvider = ({ children }) => {
       saveToken(res.data.token, true);
     }
     if (res.data.user) {
+      localStorage.setItem('tims_user', JSON.stringify(res.data.user));
       setUser(res.data.user);
     }
     return res.data;
@@ -87,6 +91,9 @@ export const AuthProvider = ({ children }) => {
   const verifyPhoneOtp = async (phone, otp, fullName, rememberMe = false) => {
     const res = await authAPI.verifyPhoneOtp(phone, otp, fullName, rememberMe);
     saveToken(res.data.token, rememberMe);
+    if (res.data.user) {
+      localStorage.setItem('tims_user', JSON.stringify(res.data.user));
+    }
     setUser(res.data.user);
     return res.data.user;
   };
@@ -95,6 +102,9 @@ export const AuthProvider = ({ children }) => {
   const oauthGoogle = async (credential, rememberMe = true) => {
     const res = await authAPI.oauthGoogle(credential, rememberMe);
     saveToken(res.data.token, rememberMe);
+    if (res.data.user) {
+      localStorage.setItem('tims_user', JSON.stringify(res.data.user));
+    }
     setUser(res.data.user);
     return res.data.user;
   };
@@ -103,6 +113,9 @@ export const AuthProvider = ({ children }) => {
   const oauthApple = async (identityToken, fullName, rememberMe = true) => {
     const res = await authAPI.oauthApple(identityToken, fullName, rememberMe);
     saveToken(res.data.token, rememberMe);
+    if (res.data.user) {
+      localStorage.setItem('tims_user', JSON.stringify(res.data.user));
+    }
     setUser(res.data.user);
     return res.data.user;
   };
@@ -111,6 +124,9 @@ export const AuthProvider = ({ children }) => {
   const socialLogin = async (payload) => {
     const res = await authAPI.socialLogin(payload);
     saveToken(res.data.token, true);
+    if (res.data.user) {
+      localStorage.setItem('tims_user', JSON.stringify(res.data.user));
+    }
     setUser(res.data.user);
     return res.data.user;
   };
@@ -119,6 +135,9 @@ export const AuthProvider = ({ children }) => {
   const guestLogin = async () => {
     const res = await authAPI.guestLogin();
     saveToken(res.data.token, false);
+    if (res.data.user) {
+      localStorage.setItem('tims_user', JSON.stringify(res.data.user));
+    }
     setUser(res.data.user);
     return res.data.user;
   };
@@ -152,6 +171,9 @@ export const AuthProvider = ({ children }) => {
   const loginWithFirebase = async (idToken, rememberMe = true) => {
     const res = await authAPI.firebaseAuth(idToken, rememberMe);
     saveToken(res.data.token, rememberMe);
+    if (res.data.user) {
+      localStorage.setItem('tims_user', JSON.stringify(res.data.user));
+    }
     setUser(res.data.user);
     return res.data.user;
   };
@@ -168,6 +190,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       localStorage.removeItem('tims_token');
       sessionStorage.removeItem('tims_token');
+      localStorage.removeItem('tims_user');
       setUser(null);
     }
   };

@@ -1,5 +1,14 @@
 import { useState } from 'react';
 import { travelAPI } from '../../api/client';
+import {
+  IconFlight,
+  IconTrain,
+  IconBus,
+  IconGlobe,
+  IconShieldTrust,
+  IconQuickAction,
+  IconClose
+} from '../ui/Icons';
 
 export default function ExternalBookingModal({ offer, onClose }) {
   const [loading, setLoading] = useState(false);
@@ -32,14 +41,15 @@ export default function ExternalBookingModal({ offer, onClose }) {
 
   const getProviderBrand = () => {
     const code = (offer.providerCode || offer.provider_code || '').toUpperCase();
-    if (code.includes('MAKEMYTRIP')) return { name: 'MakeMyTrip', badgeColor: '#e11b22', icon: '🔴' };
-    if (code.includes('IRCTC')) return { name: 'IRCTC Official', badgeColor: '#1d4ed8', icon: '🚆' };
-    if (code.includes('REDBUS')) return { name: 'RedBus Verified', badgeColor: '#dc2626', icon: '🚌' };
-    if (code.includes('AMADEUS')) return { name: 'Amadeus Airline Hub', badgeColor: '#0284c7', icon: '✈️' };
-    return { name: 'Authorized Travel Partner', badgeColor: '#4f46e5', icon: '🌐' };
+    if (code.includes('MAKEMYTRIP')) return { name: 'MakeMyTrip', badgeColor: '#e11b22', Icon: IconQuickAction };
+    if (code.includes('IRCTC')) return { name: 'IRCTC Official', badgeColor: '#1d4ed8', Icon: IconTrain };
+    if (code.includes('REDBUS')) return { name: 'RedBus Verified', badgeColor: '#dc2626', Icon: IconBus };
+    if (code.includes('AMADEUS')) return { name: 'Amadeus Airline Hub', badgeColor: '#0284c7', Icon: IconFlight };
+    return { name: 'Authorized Travel Partner', badgeColor: '#4f46e5', Icon: IconGlobe };
   };
 
   const brand = getProviderBrand();
+  const BrandIcon = brand.Icon;
 
   return (
     <div style={{
@@ -65,7 +75,7 @@ export default function ExternalBookingModal({ offer, onClose }) {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '1.5rem' }}>{brand.icon}</span>
+            <BrandIcon size={24} />
             <span style={{
               fontSize: '0.8rem',
               fontWeight: 700,
@@ -95,7 +105,7 @@ export default function ExternalBookingModal({ offer, onClose }) {
               color: '#71717a'
             }}
           >
-            ✕
+            <IconClose size={12} />
           </button>
         </div>
 
@@ -133,9 +143,10 @@ export default function ExternalBookingModal({ offer, onClose }) {
           color: '#1e40af',
           marginBottom: '1.5rem',
           display: 'flex',
+          alignItems: 'center',
           gap: '8px'
         }}>
-          <span>🛡️</span>
+          <IconShieldTrust size={20} />
           <div>
             <strong>Consumer Protection Notice:</strong> Your payment and ticket confirmation will take place directly on {brand.name}'s encrypted portal. TIMS never stores your payment card credentials.
           </div>

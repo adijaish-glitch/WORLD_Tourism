@@ -1,3 +1,4 @@
+import { IconShieldTrust, NavSecurity, IconSearch, IconEmail, IconClose, IconGlobe, IconCalendar } from '../components/ui/Icons';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -12,35 +13,30 @@ export default function TermsPage() {
       id: 'acceptance',
       number: '01',
       title: 'Acceptance of Terms',
-      icon: '📜',
       content: `By accessing, browsing, or utilizing the TIMS (Tourism & Itinerary Management System) web platform, mobile applications, or connected APIs, you enter into a legally binding agreement to comply with and be bound by these Terms of Service. If you do not consent to all provisions set forth herein, you must immediately discontinue use of the platform.`
     },
     {
       id: 'eligibility',
       number: '02',
       title: 'Eligibility & User Accounts',
-      icon: '👤',
       content: `You must be at least 18 years of age (or the age of legal majority in your jurisdiction) to establish an account or complete reservations on TIMS. When registering via email, username, phone SMS OTP, or third-party OAuth providers (such as Google or Apple), you agree to provide authentic, accurate, and current information. You are solely responsible for safeguarding your authentication credentials, session tokens, and any activities conducted under your profile.`
     },
     {
       id: 'services',
       number: '03',
       title: 'Services & Intermediary Role',
-      icon: '🌐',
       content: `TIMS provides an integrated travel management ecosystem allowing travelers to discover curated global destinations, explore 3D geographical atlases, compare boutique accommodation options, and book bespoke travel packages. TIMS acts as an authorized intermediary connecting you with certified airlines, luxury hoteliers, and licensed tour operators. While we curate and verify our partners vigorously, each third-party supplier retains independent operational responsibility for on-ground services.`
     },
     {
       id: 'pricing',
       number: '04',
       title: 'Pricing, Currencies & Dynamic Discounts',
-      icon: '💳',
       content: `All package and room prices are displayed with transparent fee breakdowns, including applicable tourist taxes and service surcharges. Group bookings dynamically reflect tier-based savings according to passenger volume. Payments are processed through PCI-DSS compliant gateways utilizing cryptographic encryption. TIMS never stores raw credit card CVVs or complete PAN credentials on our local servers.`
     },
     {
       id: 'cancellation',
       number: '05',
       title: 'Cancellation, Rescheduling & Refund Policy',
-      icon: '🔄',
       content: `Confirmed reservations can be managed directly via your personal Traveler Dashboard. Standard tour packages offer flexible cancellations:
 • Full Refund (100%): Cancellations initiated at least 14 days prior to departure.
 • Partial Refund (70%): Cancellations initiated between 7 and 13 days prior to departure.
@@ -51,35 +47,30 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
       id: 'conduct',
       number: '06',
       title: 'Traveler Code of Conduct & Verified Reviews',
-      icon: '✨',
       content: `We foster an inclusive, respectful global travel community. Users agree not to post defamatory, fraudulent, or abusive reviews. Review submissions are restricted to travelers with confirmed, completed bookings to preserve verified integrity. TIMS reserves the right to suspend accounts engaged in automated scraping, malicious probing, or fraudulent reservation practices.`
     },
     {
       id: 'intellectual',
       number: '07',
       title: 'Intellectual Property Rights',
-      icon: '🛡️',
       content: `All design systems, proprietary 3D globe visualizations, algorithms, trademarks, UI code, brand assets, and compiled country atlas datasets are the exclusive intellectual property of TIMS and its licensors. No portion of this platform may be copied, reverse-engineered, reproduced, or exploited without our express prior written permission.`
     },
     {
       id: 'liability',
       number: '08',
       title: 'Limitation of Liability & Travel Insurance',
-      icon: '⚖️',
       content: `To the fullest extent permitted by applicable law, TIMS is not liable for indirect, incidental, punitive, or consequential losses, nor for disruptions caused by natural events, border closures, flight cancellations, or vendor force majeure. We strongly advise every traveler to obtain comprehensive travel, medical, and cancellation insurance prior to departure.`
     },
     {
       id: 'modifications',
       number: '09',
       title: 'Modifications to Service & Terms',
-      icon: '📝',
       content: `TIMS reserves the right to periodically revise these Terms of Service to reflect system enhancements, statutory updates, or new regulatory standards. Material amendments will be highlighted via notice banners or registered email dispatches. Your continued interaction with the platform following publication establishes acceptance of the updated terms.`
     },
     {
       id: 'contact',
       number: '10',
       title: 'Governing Law & Dispute Resolution',
-      icon: '🏛️',
       content: `These terms are governed by and construed in accordance with international commercial arbitration standards and applicable municipal law. Any dispute arising out of or in connection with TIMS shall be resolved initially through amicable good-faith mediation before formal administrative proceedings.`
     }
   ];
@@ -132,7 +123,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
 
         <div className="container" style={{ maxWidth: '1100px', position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', padding: '0.4rem 1.1rem', borderRadius: '9999px', fontSize: '0.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.15)' }}>
-            <span>⚖️</span> Legal & Compliance Documentation • Version 2.4
+            <IconShieldTrust size={16} /> Legal & Compliance Documentation • Version 2.4
           </div>
 
           <h1 style={{
@@ -167,7 +158,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
             paddingTop: '2rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>📅</div>
+              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconShieldTrust size={20} /></div>
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#71717a', letterSpacing: '0.05em', fontWeight: 600 }}>Last Revised</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f4f4f5' }}>October 2026</div>
@@ -175,7 +166,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>🌍</div>
+              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconShieldTrust size={20} /></div>
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#71717a', letterSpacing: '0.05em', fontWeight: 600 }}>Jurisdiction</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f4f4f5' }}>Global & Cross-Border</div>
@@ -183,7 +174,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>🔒</div>
+              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconShieldTrust size={20} /></div>
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#71717a', letterSpacing: '0.05em', fontWeight: 600 }}>Payment Security</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f4f4f5' }}>PCI-DSS Level 1 Encrypted</div>
@@ -191,7 +182,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>💬</div>
+              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconShieldTrust size={20} /></div>
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#71717a', letterSpacing: '0.05em', fontWeight: 600 }}>Support Access</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f4f4f5' }}>24/7 Dedicated Care</div>
@@ -220,7 +211,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
         }}>
           {/* Live Search Filter */}
           <div style={{ position: 'relative', flex: '1 1 280px', maxWidth: '420px' }}>
-            <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#a1a1aa' }}>🔍</span>
+            <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center" }}><IconSearch size={16} /></span>
             <input
               type="text"
               placeholder="Search terms, refunds, booking clauses..."
@@ -242,7 +233,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
                 onClick={() => setSearchQuery('')}
                 style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#a1a1aa', cursor: 'pointer', fontSize: '0.9rem' }}
               >
-                ✕
+                ×
               </button>
             )}
           </div>
@@ -260,7 +251,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
                 border: '1px solid #e4e4e7'
               }}
             >
-              {copied ? '✓ Link Copied!' : '🔗 Share Link'}
+              {copied ? '• Link Copied!' : ' Share Link'}
             </button>
             
             <button
@@ -274,7 +265,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
                 border: '1px solid #e4e4e7'
               }}
             >
-              🖨️ Print Agreement
+               Print Agreement
             </button>
 
             <Link
@@ -353,7 +344,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
                     textDecoration: 'none'
                   }}
                 >
-                  ✉️ legal@tims-tourism.com →
+                   legal@tims-tourism.com →
                 </a>
               </div>
             </div>
@@ -363,7 +354,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
           <main style={{ gridColumn: 'span 8' }}>
             {filteredSections.length === 0 ? (
               <div style={{ background: '#ffffff', borderRadius: '16px', padding: '4rem 2rem', textAlign: 'center', border: '1px solid #e4e4e7' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🔍</div>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}><IconSearch size={48} /></div>
                 <h3 style={{ fontSize: '1.25rem', color: '#18181b', marginBottom: '0.5rem' }}>No matching clauses found</h3>
                 <p style={{ color: '#71717a', fontSize: '0.95rem' }}>Try searching for a different keyword or clear the search field to view all terms.</p>
                 <button
@@ -404,7 +395,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
                           justifyContent: 'center',
                           fontSize: '1.25rem'
                         }}>
-                          {sec.icon}
+                          <IconShieldTrust size={20} />
                         </div>
                         <div>
                           <div style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: '#a1a1aa', fontWeight: 600 }}>SECTION {sec.number}</div>
@@ -462,7 +453,7 @@ Approved refunds are credited to the original payment method within 5 to 10 stan
                   gap: '1.5rem',
                   marginTop: '1rem'
                 }}>
-                  <div style={{ fontSize: '2.5rem' }}>🛡️</div>
+                  <IconShieldTrust size={40} />
                   <div>
                     <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#166534', marginBottom: '0.25rem', fontFamily: 'var(--font-sans)' }}>
                       Travel With Confidence

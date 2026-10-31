@@ -1,3 +1,4 @@
+import { IconSuccess, IconClose } from './Icons';
 import { createContext, useContext, useState, useCallback } from 'react';
 
 const ToastContext = createContext();
@@ -25,8 +26,8 @@ export const ToastProvider = ({ children }) => {
       <div className="toast-container">
         {toasts.map(t => (
           <div key={t.id} className={`toast toast-${t.type}`}>
-            {t.type === 'success' && <span>✓</span>}
-            {t.type === 'error' && <span>✕</span>}
+            {t.type === 'success' && <IconSuccess size={16} />}
+            {t.type === 'error' && <IconClose size={14} />}
             {t.type === 'info' && <span>ℹ</span>}
             {t.message}
           </div>

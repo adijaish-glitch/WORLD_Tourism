@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { IconGlobe } from '../ui/Icons';
 
 export default function Footer() {
   return (
@@ -6,7 +7,10 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div>
-            <div className="footer-brand"><span style={{ color: 'var(--color-teal)' }}>🌍</span> TIMS</div>
+            <div className="footer-brand" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <IconGlobe size={22} />
+              <span>TIMS</span>
+            </div>
             <p className="footer-desc">
               Your ultimate travel companion. Explore the world's most beautiful destinations, book premium packages, and create unforgettable memories.
             </p>

@@ -3,6 +3,17 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { travelAPI } from '../api/client';
 import TravelSearchWidget from '../components/travel/TravelSearchWidget';
 import ExternalBookingModal from '../components/travel/ExternalBookingModal';
+import {
+  IconFlight,
+  IconHotel,
+  IconTrain,
+  IconBus,
+  IconHolidayPackage,
+  IconGlobe,
+  IconShieldTrust,
+  IconSearch,
+  IconQuickAction
+} from '../components/ui/Icons';
 
 export default function TravelSearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -69,12 +80,12 @@ export default function TravelSearchPage() {
 
   const getCategoryIcon = () => {
     switch (category) {
-      case 'flights': return '✈️';
-      case 'hotels': return '🏨';
-      case 'trains': return '🚆';
-      case 'buses': return '🚌';
-      case 'packages': return '🌴';
-      default: return '🌍';
+      case 'flights': return <IconFlight size={22} />;
+      case 'hotels': return <IconHotel size={22} />;
+      case 'trains': return <IconTrain size={22} />;
+      case 'buses': return <IconBus size={22} />;
+      case 'packages': return <IconHolidayPackage size={22} />;
+      default: return <IconGlobe size={22} />;
     }
   };
 
@@ -198,7 +209,7 @@ export default function TravelSearchPage() {
           }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <span style={{ fontSize: '1.5rem' }}>{getCategoryIcon()}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>{getCategoryIcon()}</span>
                 <h1 style={{ fontSize: '1.8rem', fontFamily: 'var(--font-serif)', margin: 0, color: '#0f172a' }}>
                   {getCategoryTitle()}
                 </h1>
@@ -238,7 +249,7 @@ export default function TravelSearchPage() {
               gap: '12px',
               alignItems: 'flex-start'
             }}>
-              <span style={{ fontSize: '1.25rem' }}>🛡️</span>
+              <IconShieldTrust size={20} />
               <div style={{ fontSize: '0.85rem', color: '#1e40af', lineHeight: 1.5 }}>
                 <strong>Authorized Schedule & Ticket Policy:</strong> TIMS displays official timetable schedules. In compliance with railway and passenger transport safety regulations, final ticket issuance and confirmed PNR reservations are fulfilled directly through official authorized portals (IRCTC & RedBus partner networks).
               </div>
@@ -282,7 +293,7 @@ export default function TravelSearchPage() {
               padding: '4rem 2rem',
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}><IconSearch size={54} /></div>
               <h3 style={{ fontSize: '1.4rem', fontWeight: 700, margin: '0 0 0.5rem 0', color: '#0f172a' }}>
                 No travel offers matched your criteria
               </h3>
@@ -451,7 +462,7 @@ export default function TravelSearchPage() {
                               className="btn btn-primary"
                               style={{ borderRadius: '12px', padding: '0.65rem 1.4rem', fontWeight: 700 }}
                             >
-                              Book on TIMS ⚡
+                              Book on TIMS
                             </Link>
                           ) : (
                             <button

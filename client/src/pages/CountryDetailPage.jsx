@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { countriesAPI } from '../api/client';
+import {
+  IconGlobe,
+  IconWarning,
+  IconFlight
+} from '../components/ui/Icons';
 
 export default function CountryDetailPage() {
   const { code } = useParams();
@@ -44,7 +49,9 @@ export default function CountryDetailPage() {
     return (
       <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', animation: 'spin 1.5s infinite linear' }}>🌍</div>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <IconGlobe size={48} />
+          </div>
           <p style={{ color: '#71717a', marginTop: '1rem', fontWeight: 500 }}>Loading country details...</p>
         </div>
       </div>
@@ -55,7 +62,9 @@ export default function CountryDetailPage() {
     return (
       <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <div style={{ textAlign: 'center', maxWidth: '480px' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+            <IconWarning size={48} />
+          </div>
           <h2 style={{ marginBottom: '0.5rem' }}>Country Not Found</h2>
           <p style={{ color: '#71717a', marginBottom: '1.5rem' }}>We could not find information for country code "{code}".</p>
           <Link to="/countries" className="btn btn-primary">← Back to All Countries</Link>
@@ -152,9 +161,10 @@ export default function CountryDetailPage() {
                 <Link
                   to={`/explore?country=${encodeURIComponent(country.name)}&lat=${country.latitude}&lng=${country.longitude}`}
                   className="btn"
-                  style={{ background: '#2563eb', color: 'white', padding: '0.75rem 1.4rem' }}
+                  style={{ background: '#2563eb', color: 'white', padding: '0.75rem 1.4rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  🌐 View on 3D Globe
+                  <IconGlobe size={16} />
+                  <span>View on 3D Globe</span>
                 </Link>
               </div>
             </div>
@@ -339,7 +349,9 @@ export default function CountryDetailPage() {
               textAlign: 'center',
               border: '1px solid #bfdbfe'
             }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>✈️</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+                <IconFlight size={48} />
+              </div>
               <h3 style={{ fontSize: '1.5rem', color: '#1e3a8a', marginBottom: '0.5rem' }}>
                 Want to travel to {country.name}?
               </h3>

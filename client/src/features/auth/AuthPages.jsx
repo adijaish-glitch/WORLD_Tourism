@@ -580,7 +580,7 @@ export function LoginPage() {
                     {devOtpCode && (
                       <div style={{ marginTop: '8px' }}>
                         <div className="auth-otp-badge">
-                          ⚡ Dev Mode SMS Code: <strong>{devOtpCode}</strong>
+                          Dev Mode SMS Code: <strong>{devOtpCode}</strong>
                         </div>
                         <p style={{ fontSize: '0.72rem', color: '#71717a', marginTop: '4px', fontFamily: 'Courier New, monospace' }}>
                           ℹ️ Twilio credentials not configured in server/.env yet — your code is simulated above and in server terminal. Enter it to verify!
@@ -642,7 +642,7 @@ export function RegisterPage() {
     phone: '',
     password: '',
     confirmPassword: '',
-    avatarUrl: '🏔️',
+    avatarUrl: 'mountain',
     acceptTerms: false
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -661,7 +661,7 @@ export function RegisterPage() {
     }
   }, [isAuthenticated, authLoading, navigate]);
 
-  const avatarPresets = ['🏔️', '🌴', '🎒', '🧭', '✈️', '🗺️', '⛵', '🏨'];
+  const avatarPresets = ['mountain', 'tropical', 'backpack', 'compass', 'aviator', 'cartographer', 'sailor', 'hospitality'];
   const pwdEval = evaluatePassword(formData.password);
   const passwordsMatch = formData.password && formData.confirmPassword && formData.password === formData.confirmPassword;
 
@@ -958,16 +958,16 @@ export function RegisterPage() {
                   </div>
                   <div className="strength-rules-list">
                     <span className={`strength-rule-item ${pwdEval.rules.length ? 'valid' : 'invalid'}`}>
-                      {pwdEval.rules.length ? '✓' : '○'} 8+ characters
+                      {pwdEval.rules.length ? '•' : '•'} 8+ characters
                     </span>
                     <span className={`strength-rule-item ${pwdEval.rules.upper ? 'valid' : 'invalid'}`}>
-                      {pwdEval.rules.upper ? '✓' : '○'} Uppercase letter
+                      {pwdEval.rules.upper ? '•' : '•'} Uppercase letter
                     </span>
                     <span className={`strength-rule-item ${pwdEval.rules.number ? 'valid' : 'invalid'}`}>
-                      {pwdEval.rules.number ? '✓' : '○'} Number
+                      {pwdEval.rules.number ? '•' : '•'} Number
                     </span>
                     <span className={`strength-rule-item ${pwdEval.rules.special ? 'valid' : 'invalid'}`}>
-                      {pwdEval.rules.special ? '✓' : '○'} Special character
+                      {pwdEval.rules.special ? '•' : '•'} Special character
                     </span>
                   </div>
                 </div>
@@ -997,9 +997,9 @@ export function RegisterPage() {
               {formData.confirmPassword && (
                 <div style={{ fontSize: '0.75rem', marginTop: '4px', fontFamily: 'Courier New, monospace' }}>
                   {passwordsMatch ? (
-                    <span style={{ color: '#15803d' }}>✓ Passwords match</span>
+                    <span style={{ color: '#15803d' }}>• Passwords match</span>
                   ) : (
-                    <span style={{ color: '#b91c1c' }}>✕ Passwords do not match</span>
+                    <span style={{ color: '#b91c1c' }}>× Passwords do not match</span>
                   )}
                 </div>
               )}
@@ -1098,7 +1098,7 @@ export function ForgotPasswordPage() {
           {submitted ? (
             <div style={{ textAlign: 'center' }}>
               <div className="auth-inline-alert success" style={{ textAlign: 'left', marginBottom: '1.5rem' }}>
-                <span>📬</span>
+                <IconEmail size={36} />
                 <div>
                   <strong>Reset Link Dispatched</strong>
                   <p style={{ marginTop: '4px' }}>
@@ -1110,7 +1110,7 @@ export function ForgotPasswordPage() {
               {testLink && (
                 <div style={{ background: '#f4f4f5', padding: '1rem', borderRadius: '6px', marginBottom: '1.5rem', textAlign: 'left' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', color: '#71717a', marginBottom: '4px', fontFamily: 'Courier New, monospace' }}>
-                    ⚡ Instant Demo Link
+                    Instant Demo Link
                   </div>
                   <Link
                     to={testLink}
@@ -1246,7 +1246,7 @@ export function ResetPasswordPage() {
           {successState ? (
             <div style={{ textAlign: 'center' }}>
               <div className="auth-inline-alert success" style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
-                <span>🎉</span>
+                <IconSuccess size={40} />
                 <div>
                   <strong>Key Reset Complete</strong>
                   <p style={{ marginTop: '4px' }}>
@@ -1341,9 +1341,9 @@ export function ResetPasswordPage() {
                 {confirmPassword && (
                   <div style={{ fontSize: '0.75rem', marginTop: '4px', fontFamily: 'Courier New, monospace' }}>
                     {passwordsMatch ? (
-                      <span style={{ color: '#15803d' }}>✓ Passwords match</span>
+                      <span style={{ color: '#15803d' }}>• Passwords match</span>
                     ) : (
-                      <span style={{ color: '#b91c1c' }}>✕ Passwords do not match</span>
+                      <span style={{ color: '#b91c1c' }}>× Passwords do not match</span>
                     )}
                   </div>
                 )}
@@ -1445,7 +1445,7 @@ export function VerifyEmailPage() {
 
           {statusMessage && (
             <div className="auth-inline-alert error">
-              <span>⚠️</span>
+              <IconWarning size={14} />
               <span>{statusMessage}</span>
             </div>
           )}
@@ -1453,7 +1453,7 @@ export function VerifyEmailPage() {
           {verified ? (
             <div style={{ textAlign: 'center' }}>
               <div className="auth-inline-alert success" style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
-                <span>✅</span>
+                <IconSuccess size={14} />
                 <div>
                   <strong>Email Verified!</strong>
                   <p style={{ marginTop: '4px' }}>Your traveler credentials have been authenticated.</p>

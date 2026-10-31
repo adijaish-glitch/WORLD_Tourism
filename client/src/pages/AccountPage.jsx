@@ -46,11 +46,11 @@ export default function AccountPage() {
   // ──────────────────────────────────────────
   // 1. PERSONAL PROFILE STATE
   // ──────────────────────────────────────────
-  const avatarPresets = ['🏔️', '🌴', '🎒', '🧭', '✈️', '🗺️', '⛵', '🏨'];
+  const avatarPresets = ['mountain', 'tropical', 'backpack', 'compass', 'aviator', 'cartographer', 'sailor', 'hospitality'];
   const [profileForm, setProfileForm] = useState({
     full_name: user?.full_name || '',
     username: user?.username || '',
-    avatar_url: user?.avatar_url || '🏔️',
+    avatar_url: user?.avatar_url || 'mountain',
     language: user?.language || 'en',
     currency: user?.currency || 'USD',
     travel_preferences: user?.travel_preferences || { seat: 'window', dietary: 'none', style: 'luxury' }
@@ -152,7 +152,7 @@ export default function AccountPage() {
     setProfileForm({
       full_name: user.full_name || '',
       username: user.username || '',
-      avatar_url: user.avatar_url || '🏔️',
+      avatar_url: user.avatar_url || 'mountain',
       language: user.language || 'en',
       currency: user.currency || 'USD',
       travel_preferences: user.travel_preferences || { seat: 'window', dietary: 'none', style: 'luxury' }
@@ -268,7 +268,7 @@ export default function AccountPage() {
       setOtpSent(true);
       info(res.data.message || 'Verification code sent via SMS!');
       if (res.data.devCode) {
-        console.log('📱 [Dev Code Helper]:', res.data.devCode);
+        console.log('[Dev Code Helper]:', res.data.devCode);
       }
     } catch (err) {
       error(err.response?.data?.error || 'Failed to dispatch SMS code');
@@ -515,7 +515,7 @@ export default function AccountPage() {
             {user?.avatar_url && user.avatar_url.startsWith('http') ? (
               <img src={user.avatar_url} alt={user.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              getAvatarComponent(user?.avatar_url || '🏔️', 72)
+              getAvatarComponent(user?.avatar_url || 'mountain', 72)
             )}
           </div>
           <div>
@@ -953,7 +953,7 @@ export default function AccountPage() {
                               background: isExternal ? '#e0f2fe' : '#dcfce7',
                               color: isExternal ? '#0369a1' : '#15803d'
                             }}>
-                              {isExternal ? '↗ Partner Booking' : '⚡ TIMS Direct'}
+                              {isExternal ? 'Partner Booking' : 'TIMS Direct'}
                             </span>
                             <span style={{
                               fontWeight: 700,
@@ -1162,9 +1162,7 @@ export default function AccountPage() {
                               cursor: 'pointer',
                               boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
                             }}
-                          >
-                            ✕
-                          </button>
+                          ><IconClose size={12} /></button>
                         </div>
 
                         <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -1280,7 +1278,7 @@ export default function AccountPage() {
                           </span>
                           {t.is_primary === 1 && (
                             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#16a34a' }}>
-                              ★ Primary Traveler
+                              Primary Traveler
                             </span>
                           )}
                         </div>
@@ -1359,14 +1357,14 @@ export default function AccountPage() {
                   <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                     <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '0.25rem' }}>Email Verification</span>
                     <strong style={{ fontSize: '1.05rem', color: user?.email_verified ? '#16a34a' : '#b45309' }}>
-                      {user?.email_verified ? '✓ Verified' : '⚠️ Pending'}
+                      {user?.email_verified ? 'Verified' : 'Pending'}
                     </strong>
                   </div>
 
                   <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                     <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '0.25rem' }}>SMS 2FA Gateway</span>
                     <strong style={{ fontSize: '1.05rem', color: user?.phone_verified ? '#16a34a' : '#64748b' }}>
-                      {user?.phone_verified ? '✓ Active via Twilio' : 'Optional (Unverified)'}
+                      {user?.phone_verified ? 'Active via Twilio' : 'Optional (Unverified)'}
                     </strong>
                   </div>
                 </div>
@@ -1679,9 +1677,7 @@ export default function AccountPage() {
                     <button
                       onClick={() => setActiveTicket(null)}
                       style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#94a3b8' }}
-                    >
-                      ✕
-                    </button>
+                    ><IconClose size={12} /></button>
                   </div>
 
                   {/* Messages Thread */}
@@ -1711,7 +1707,7 @@ export default function AccountPage() {
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.25rem' }}>
                             <strong style={{ fontSize: '0.82rem', color: isSupport ? '#1e293b' : '#166534' }}>
-                              {m.sender_name} {isSupport && '🛡️'}
+                              {m.sender_name} {isSupport && <IconShieldTrust size={12} />}
                             </strong>
                             <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
                               {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1787,9 +1783,7 @@ export default function AccountPage() {
               <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <IconPhoneOtp size={22} /> Twilio SMS Verification
               </h3>
-              <button onClick={() => setPhoneModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>
-                ✕
-              </button>
+              <button onClick={() => setPhoneModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}><IconClose size={12} /></button>
             </div>
 
             <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '0 0 1.25rem 0' }}>
@@ -1888,9 +1882,7 @@ export default function AccountPage() {
               <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>
                 {editingTraveller ? 'Edit Traveller Profile' : 'Add Travel Companion'}
               </h3>
-              <button onClick={() => setTravellerModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>
-                ✕
-              </button>
+              <button onClick={() => setTravellerModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}><IconClose size={12} /></button>
             </div>
 
             <form onSubmit={handleSaveTraveller}>
@@ -2032,9 +2024,7 @@ export default function AccountPage() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>Submit Support Request</h3>
-              <button onClick={() => setTicketModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>
-                ✕
-              </button>
+              <button onClick={() => setTicketModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}><IconClose size={12} /></button>
             </div>
 
             <form onSubmit={handleCreateTicket}>
@@ -2156,9 +2146,7 @@ export default function AccountPage() {
                   Ref #{selectedBooking.reference_number || `TIMS-${selectedBooking.id}`}
                 </h3>
               </div>
-              <button onClick={() => setSelectedBooking(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>
-                ✕
-              </button>
+              <button onClick={() => setSelectedBooking(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}><IconClose size={12} /></button>
             </div>
 
             <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '16px', marginBottom: '1.25rem' }}>

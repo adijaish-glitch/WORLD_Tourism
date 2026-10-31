@@ -2,6 +2,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { countriesAPI } from '../api/client';
+import {
+  IconExploreAtlas,
+  IconSearch,
+  IconClose,
+  IconGlobe
+} from '../components/ui/Icons';
 
 export default function CountriesPage() {
   const [countries, setCountries] = useState([]);
@@ -85,8 +91,9 @@ export default function CountriesPage() {
         
         {/* Header Section */}
         <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-          <div className="badge-pill" style={{ marginBottom: '1rem', background: '#e0f2fe', color: '#0369a1' }}>
-            🌍 Global Atlas & Tourism Directory
+          <div className="badge-pill" style={{ marginBottom: '1rem', background: '#e0f2fe', color: '#0369a1', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <IconExploreAtlas size={18} />
+            <span>Global Atlas & Tourism Directory</span>
           </div>
           <h1 style={{ fontSize: '3.2rem', color: '#09090b', marginBottom: '1rem' }}>
             Explore Every <span className="italic" style={{ color: '#2563eb' }}>Country</span>
@@ -109,8 +116,8 @@ export default function CountriesPage() {
             
             {/* Search Input */}
             <div style={{ position: 'relative', flex: '1 1 320px' }}>
-              <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#a1a1aa', fontSize: '1.1rem' }}>
-                🔍
+              <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
+                <IconSearch size={18} />
               </span>
               <input
                 type="text"
@@ -135,10 +142,10 @@ export default function CountriesPage() {
                   onClick={() => setSearch('')}
                   style={{
                     position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '1rem'
+                    background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center'
                   }}
                 >
-                  ✕
+                  <IconClose size={12} />
                 </button>
               )}
             </div>
@@ -215,10 +222,14 @@ export default function CountriesPage() {
               fontSize: '0.85rem',
               color: '#2563eb',
               textDecoration: 'none',
-              fontWeight: 600
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
           >
-            🌐 View on 3D Globe →
+            <IconGlobe size={16} />
+            <span>View on 3D Globe →</span>
           </Link>
         </div>
 
@@ -248,7 +259,9 @@ export default function CountriesPage() {
             maxWidth: '500px',
             margin: '2rem auto'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗺️</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <IconExploreAtlas size={54} />
+            </div>
             <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>No countries found</h3>
             <p style={{ color: '#71717a', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
               We couldn't find any country matching "{search}". Try searching for another name or reset filters.
@@ -399,7 +412,7 @@ export default function CountriesPage() {
 
                   {c.currencies && (
                     <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      💳 <span style={{ color: '#334155', fontWeight: 500 }}>{c.currencies.split(',')[0]}</span>
+                      <span style={{ color: '#334155', fontWeight: 600 }}>Currency: {c.currencies.split(',')[0]}</span>
                     </div>
                   )}
 

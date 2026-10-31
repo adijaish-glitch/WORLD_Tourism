@@ -10,7 +10,16 @@ import {
   IconLocationPin,
   IconQuickAction,
   IconHotel,
-  IconExploreAtlas
+  IconExploreAtlas,
+  IconHolidayPackage,
+  FlagFrance,
+  FlagJapan,
+  FlagUAE,
+  FlagAustralia,
+  FlagGermany,
+  FlagUK,
+  FlagUS,
+  FlagIndia
 } from '../components/ui/Icons';
 
 export default function HomePage() {
@@ -77,8 +86,9 @@ export default function HomePage() {
       <div className="hero" style={{ paddingBottom: '3rem' }}>
         {/* Top Announcement Pill */}
         <div className="flex justify-center mb-6">
-          <div className="badge-pill">
-            MakeMyTrip Inspired Travel Hub · 500+ Destinations & Routes ✈️
+          <div className="badge-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <IconFlight size={16} />
+            <span>MakeMyTrip Inspired Travel Hub · 500+ Destinations & Routes</span>
           </div>
         </div>
 
@@ -118,7 +128,7 @@ export default function HomePage() {
           <span><IconFlight size={16} /> AMADEUS</span>
           <span><IconBus size={16} /> REDBUS</span>
           <span><IconHotel size={16} /> MARRIOTT</span>
-          <span>⭐ TRIPADVISOR</span>
+          <span>TRIPADVISOR</span>
         </div>
       </div>
 
@@ -209,8 +219,8 @@ export default function HomePage() {
           <div className="container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <div className="badge-pill" style={{ marginBottom: '0.5rem', background: '#dcfce7', color: '#15803d' }}>
-                  ✨ Handcrafted Tours & Stays
+                <div className="badge-pill" style={{ marginBottom: '0.5rem', background: '#dcfce7', color: '#15803d', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <IconHolidayPackage size={16} /> Handcrafted Tours & Stays
                 </div>
                 <h2 style={{ fontSize: '2.2rem', fontFamily: 'var(--font-serif)', margin: 0, color: '#0f172a' }}>
                   Featured Holiday <span className="italic" style={{ color: '#16a34a' }}>Packages</span>
@@ -424,8 +434,8 @@ export default function HomePage() {
         <div className="container">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
-              <div className="badge-pill" style={{ marginBottom: '0.75rem', background: '#dbeafe', color: '#1d4ed8' }}>
-                🌍 250 Countries Catalogued
+              <div className="badge-pill" style={{ marginBottom: '0.75rem', background: '#dbeafe', color: '#1d4ed8', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <IconGlobe size={16} /> 250 Countries Catalogued
               </div>
               <h2 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-serif)', margin: 0, color: '#09090b' }}>
                 Discover Countries <span className="italic" style={{ color: '#2563eb' }}>Worldwide</span>
@@ -453,14 +463,14 @@ export default function HomePage() {
             marginBottom: '2rem'
           }}>
             {[
-              { code: 'fr', name: 'France', emoji: '🇫🇷', capital: 'Paris', region: 'Europe', pop: '67.4M', season: 'Spring & Summer' },
-              { code: 'jp', name: 'Japan', emoji: '🇯🇵', capital: 'Tokyo', region: 'Asia', pop: '125.8M', season: 'Spring (Cherry Blossoms)' },
-              { code: 'it', name: 'Italy', emoji: '🇮🇹', capital: 'Rome', region: 'Europe', pop: '59.5M', season: 'Spring to Autumn' },
-              { code: 'ae', name: 'UAE', emoji: '🇦🇪', capital: 'Abu Dhabi', region: 'Middle East', pop: '9.9M', season: 'Winter (Nov - Mar)' },
-              { code: 'au', name: 'Australia', emoji: '🇦🇺', capital: 'Canberra', region: 'Oceania', pop: '25.7M', season: 'Oct - Apr' },
-              { code: 'br', name: 'Brazil', emoji: '🇧🇷', capital: 'Brasília', region: 'Americas', pop: '212.5M', season: 'Dec - Mar' },
-              { code: 'mv', name: 'Maldives', emoji: '🇲🇻', capital: 'Malé', region: 'Asia', pop: '540k', season: 'Nov - Apr' },
-              { code: 'za', name: 'South Africa', emoji: '🇿🇦', capital: 'Pretoria', region: 'Africa', pop: '59.3M', season: 'May - Sep' },
+              { code: 'fr', name: 'France', FlagComponent: FlagFrance, capital: 'Paris', region: 'Europe', pop: '67.4M', season: 'Spring & Summer' },
+              { code: 'jp', name: 'Japan', FlagComponent: FlagJapan, capital: 'Tokyo', region: 'Asia', pop: '125.8M', season: 'Spring (Cherry Blossoms)' },
+              { code: 'de', name: 'Germany', FlagComponent: FlagGermany, capital: 'Berlin', region: 'Europe', pop: '84.4M', season: 'May - Sep' },
+              { code: 'ae', name: 'UAE', FlagComponent: FlagUAE, capital: 'Abu Dhabi', region: 'Middle East', pop: '9.9M', season: 'Winter (Nov - Mar)' },
+              { code: 'au', name: 'Australia', FlagComponent: FlagAustralia, capital: 'Canberra', region: 'Oceania', pop: '25.7M', season: 'Oct - Apr' },
+              { code: 'gb', name: 'United Kingdom', FlagComponent: FlagUK, capital: 'London', region: 'Europe', pop: '67.3M', season: 'Summer' },
+              { code: 'us', name: 'United States', FlagComponent: FlagUS, capital: 'Washington, D.C.', region: 'Americas', pop: '333.3M', season: 'Year-round' },
+              { code: 'in', name: 'India', FlagComponent: FlagIndia, capital: 'New Delhi', region: 'Asia', pop: '1.43B', season: 'Oct - Mar' },
             ].map((c) => (
               <Link
                 key={c.code}
@@ -488,7 +498,7 @@ export default function HomePage() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <span style={{ fontSize: '2rem' }}>{c.emoji}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}><c.FlagComponent size={32} /></span>
                   <span style={{
                     fontSize: '0.75rem',
                     fontWeight: 600,

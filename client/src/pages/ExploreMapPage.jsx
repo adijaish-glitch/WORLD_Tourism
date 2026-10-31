@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import Globe from 'react-globe.gl';
 import { destinationsAPI, countriesAPI } from '../api/client';
+import { IconGlobe, IconLocationPin } from '../components/ui/Icons';
 
 function checkWebGL() {
   try {
@@ -95,7 +96,7 @@ export default function ExploreMapPage() {
         lat: c.latitude,
         lng: c.longitude,
         name: c.name,
-        flag: c.flag_emoji || '🏳️',
+        flag: '',
         code: (c.code || '').toLowerCase(),
         subtitle: c.capital,
         isCountry: true
@@ -105,7 +106,7 @@ export default function ExploreMapPage() {
         lat: d.latitude,
         lng: d.longitude,
         name: d.name,
-        flag: '📍',
+        flag: '',
         id: d.id,
         subtitle: d.country,
         isCountry: false
@@ -242,7 +243,10 @@ export default function ExploreMapPage() {
                 transition: 'all 0.2s'
               }}
             >
-              ★ Destinations ({destinations.length})
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <IconLocationPin size={14} />
+                <span>Destinations ({destinations.length})</span>
+              </span>
             </button>
 
             <button
@@ -260,7 +264,10 @@ export default function ExploreMapPage() {
                 transition: 'all 0.2s'
               }}
             >
-              🌍 Countries ({countries.length || 250})
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <IconGlobe size={14} />
+                <span>Countries ({countries.length || 250})</span>
+              </span>
             </button>
           </div>
         </div>
@@ -319,7 +326,9 @@ export default function ExploreMapPage() {
           textAlign: 'center',
           color: 'white'
         }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🌐</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+            <IconGlobe size={64} />
+          </div>
           <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>3D Hardware Acceleration Unavailable</h2>
           <p style={{ maxWidth: '500px', color: '#a1a1aa', marginBottom: '2rem' }}>
             Your browser does not currently have WebGL 3D rendering enabled. You can still explore all destinations and countries using our interactive directories below.

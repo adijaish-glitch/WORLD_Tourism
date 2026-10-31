@@ -3,6 +3,15 @@ import { bookingsAPI, travelAPI } from '../api/client';
 import { useAuth } from '../features/auth/AuthContext';
 import { useToast } from '../components/ui/ToastContext';
 import { Link } from 'react-router-dom';
+import {
+  IconFlight,
+  IconHotel,
+  IconTrain,
+  IconGlobe,
+  IconEmail,
+  NavSupport,
+  IconWarning
+} from '../components/ui/Icons';
 
 export default function CustomerDashboard() {
   const { user } = useAuth();
@@ -61,7 +70,10 @@ export default function CustomerDashboard() {
           <p>Welcome back, {user?.full_name || 'Traveler'} · Manage your vacations, transport, and bookings</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <Link to="/search" className="btn btn-primary">Book New Trip ✈️</Link>
+          <Link to="/search" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <IconFlight size={16} />
+            <span>Book New Trip</span>
+          </Link>
           <Link to="/profile" className="btn" style={{ background: '#f4f4f5', border: '1px solid #e4e4e7' }}>Edit Profile</Link>
         </div>
       </div>
@@ -69,7 +81,7 @@ export default function CustomerDashboard() {
       {!user?.email_verified && (
         <div className="auth-inline-alert info" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>✉️</span>
+            <IconEmail size={16} />
             <span>Your email <strong>{user?.email}</strong> is not yet verified.</span>
           </div>
           <Link to={`/verify-email?email=${encodeURIComponent(user?.email || '')}`} style={{ fontWeight: 'bold', color: '#1e40af', textDecoration: 'underline' }}>
@@ -95,10 +107,14 @@ export default function CustomerDashboard() {
             color: activeTab === 'direct' ? '#2563eb' : '#64748b',
             fontWeight: activeTab === 'direct' ? 700 : 500,
             cursor: 'pointer',
-            fontSize: '0.95rem'
+            fontSize: '0.95rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px'
           }}
         >
-          🏨 Confirmed Direct Bookings ({directBookings.length})
+          <IconHotel size={18} />
+          <span>Confirmed Direct Bookings ({directBookings.length})</span>
         </button>
         <button
           onClick={() => setActiveTab('external')}
@@ -110,10 +126,14 @@ export default function CustomerDashboard() {
             color: activeTab === 'external' ? '#2563eb' : '#64748b',
             fontWeight: activeTab === 'external' ? 700 : 500,
             cursor: 'pointer',
-            fontSize: '0.95rem'
+            fontSize: '0.95rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px'
           }}
         >
-          🌐 External Partner Bookings ({externalBookings.length})
+          <IconGlobe size={18} />
+          <span>External Partner Bookings ({externalBookings.length})</span>
         </button>
         <button
           onClick={() => setActiveTab('inquiries')}
@@ -125,10 +145,14 @@ export default function CustomerDashboard() {
             color: activeTab === 'inquiries' ? '#2563eb' : '#64748b',
             fontWeight: activeTab === 'inquiries' ? 700 : 500,
             cursor: 'pointer',
-            fontSize: '0.95rem'
+            fontSize: '0.95rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px'
           }}
         >
-          📩 Support & Custom Inquiries
+          <NavSupport size={18} />
+          <span>Support & Custom Inquiries</span>
         </button>
       </div>
 
@@ -144,7 +168,9 @@ export default function CustomerDashboard() {
             <p className="text-muted">Loading reservations...</p>
           ) : directBookings.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">✈️</div>
+              <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                <IconFlight size={48} />
+              </div>
               <h3>No direct trips booked yet</h3>
               <p>Explore thousands of destinations, curated vacation packages, and luxury stays.</p>
               <Link to="/packages" className="btn btn-primary" style={{ marginTop: '1rem' }}>Browse Packages</Link>
@@ -217,21 +243,30 @@ export default function CustomerDashboard() {
             padding: '1.25rem',
             marginBottom: '1.5rem',
             display: 'flex',
+            alignItems: 'center',
             gap: '12px'
           }}>
-            <span style={{ fontSize: '1.5rem' }}>ℹ️</span>
+            <IconWarning size={24} />
             <div style={{ fontSize: '0.88rem', color: '#334155', lineHeight: 1.5 }}>
               <strong>External Provider Management:</strong> Flights, trains, and partner accommodations booked via MakeMyTrip, IRCTC, or RedBus are confirmed on the partner's platform. For modifications, cancellations, or ticket downloads, please log in directly to the respective provider's portal using your PNR or booking email.
             </div>
           </div>
 
           <div className="empty-state">
-            <div className="empty-state-icon">🌐</div>
+            <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <IconGlobe size={48} />
+            </div>
             <h3>Looking for external reservations?</h3>
             <p>You can search live partner airfare and railway timetables on our search hub anytime.</p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem', flexWrap: 'wrap' }}>
-              <Link to="/search?category=flights" className="btn btn-primary">Search Flights ✈️</Link>
-              <Link to="/search?category=trains" className="btn" style={{ background: '#f4f4f5', border: '1px solid #e4e4e7' }}>Train Timetables 🚆</Link>
+              <Link to="/search?category=flights" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <IconFlight size={16} />
+                <span>Search Flights</span>
+              </Link>
+              <Link to="/search?category=trains" className="btn" style={{ background: '#f4f4f5', border: '1px solid #e4e4e7', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <IconTrain size={16} />
+                <span>Train Timetables</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -264,8 +299,9 @@ export default function CustomerDashboard() {
                 Email inquiries are responded to within 4 business hours.
               </div>
             </div>
-            <a href="mailto:support@tims-tourism.com" className="btn btn-primary" style={{ borderRadius: '12px' }}>
-              Contact Concierge ✉️
+            <a href="mailto:support@tims-tourism.com" className="btn btn-primary" style={{ borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <IconEmail size={16} />
+              <span>Contact Concierge</span>
             </a>
           </div>
         </div>

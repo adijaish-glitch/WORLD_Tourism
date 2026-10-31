@@ -1,3 +1,4 @@
+import { IconSuccess, IconCalendar } from '../components/ui/Icons';
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { bookingsAPI } from '../api/client';
@@ -40,7 +41,7 @@ export default function BookingConfirmationPage() {
     return (
       <div className="container page" style={{ textAlign: 'center' }}>
         <div className="empty-state">
-          <div className="empty-state-icon">📋</div>
+          <div className="empty-state-icon" style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}><IconCalendar size={48} /></div>
           <h3>Booking not found</h3>
           <p>We couldn't find this booking. It may have been removed.</p>
           <Link to="/dashboard" className="btn btn-primary" style={{ marginTop: '1rem' }}>Go to Dashboard</Link>
@@ -58,9 +59,7 @@ export default function BookingConfirmationPage() {
           background: '#f0fdf4', border: '2px solid #bbf7d0',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 1.5rem', fontSize: '2.5rem',
-        }}>
-          ✓
-        </div>
+        }}><IconSuccess size={40} /></div>
         <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2.5rem', color: '#09090b', marginBottom: '0.5rem' }}>
           Booking Confirmed!
         </h1>

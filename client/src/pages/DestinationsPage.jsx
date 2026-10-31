@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { destinationsAPI, countriesAPI } from '../api/client';
+import { IconGlobe } from '../components/ui/Icons';
 
 export default function DestinationsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -112,7 +113,9 @@ export default function DestinationsPage() {
         </div>
       ) : destinations.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">🌍</div>
+          <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+            <IconGlobe size={48} />
+          </div>
           <h3>No destinations found</h3>
           <p>Try adjusting your search or filters.</p>
         </div>
@@ -151,8 +154,8 @@ export default function DestinationsPage() {
                 
                 {countriesData[d.country] && (
                   <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--border-color)', display: 'flex', gap: 'var(--space-md)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {countriesData[d.country].language && <div>🗣️ {countriesData[d.country].language}</div>}
-                    {countriesData[d.country].currency && <div>💰 {countriesData[d.country].currency}</div>}
+                    {countriesData[d.country].language && <div>Language: {countriesData[d.country].language}</div>}
+                    {countriesData[d.country].currency && <div>Currency: {countriesData[d.country].currency}</div>}
                   </div>
                 )}
               </div>

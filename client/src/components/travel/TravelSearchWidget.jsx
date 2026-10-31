@@ -270,8 +270,9 @@ export default function TravelSearchWidget({ initialCategory = 'hotels', onSearc
               </div>
             </div>
             <div>
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px', borderRadius: '14px', fontSize: '1rem', fontWeight: 700 }}>
-                Search Stays 🏨
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px', borderRadius: '14px', fontSize: '1rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <IconHotel size={18} />
+                <span>Search Stays</span>
               </button>
             </div>
           </div>
@@ -364,8 +365,9 @@ export default function TravelSearchWidget({ initialCategory = 'hotels', onSearc
                 </select>
               </div>
               <div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px', borderRadius: '14px', fontSize: '1rem', fontWeight: 700 }}>
-                  Search Flights ✈️
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px', borderRadius: '14px', fontSize: '1rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <IconFlight size={18} />
+                  <span>Search Flights</span>
                 </button>
               </div>
             </div>
@@ -425,8 +427,9 @@ export default function TravelSearchWidget({ initialCategory = 'hotels', onSearc
               </select>
             </div>
             <div>
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px', borderRadius: '14px', fontSize: '1rem', fontWeight: 700 }}>
-                Find Trains 🚆
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px', borderRadius: '14px', fontSize: '1rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <IconTrain size={18} />
+                <span>Find Trains</span>
               </button>
             </div>
           </div>
@@ -484,8 +487,9 @@ export default function TravelSearchWidget({ initialCategory = 'hotels', onSearc
               </select>
             </div>
             <div>
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px', borderRadius: '14px', fontSize: '1rem', fontWeight: 700 }}>
-                Find Buses 🚌
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px', borderRadius: '14px', fontSize: '1rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <IconBus size={18} />
+                <span>Find Buses</span>
               </button>
             </div>
           </div>
@@ -542,8 +546,9 @@ export default function TravelSearchWidget({ initialCategory = 'hotels', onSearc
               </select>
             </div>
             <div>
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px', borderRadius: '14px', fontSize: '1rem', fontWeight: 700 }}>
-                Explore Tours 🌴
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '48px', borderRadius: '14px', fontSize: '1rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <IconHolidayPackage size={18} />
+                <span>Explore Tours</span>
               </button>
             </div>
           </div>

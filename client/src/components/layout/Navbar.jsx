@@ -139,7 +139,7 @@ export default function Navbar() {
                   <img src={user.avatar_url} alt="" style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover' }} />
                 ) : (
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    {getAvatarComponent(user?.avatar_url || '🏔️', 26)}
+                    {getAvatarComponent(user?.avatar_url || 'mountain', 26)}
                   </span>
                 )}
                 <span>{user?.full_name?.split(' ')[0] || 'Profile'}</span>

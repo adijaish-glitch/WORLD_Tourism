@@ -3,7 +3,16 @@ import { reportsAPI, bookingsAPI, usersAPI, travelAPI, accountAPI } from '../api
 import { useAuth } from '../features/auth/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useToast } from '../components/ui/ToastContext';
-import { IconAdminOffice } from '../components/ui/Icons';
+import {
+  IconAdminOffice,
+  IconQuickAction,
+  IconFlight,
+  IconGlobe,
+  IconLocationPin,
+  NavTravellers,
+  IconShieldTrust,
+  getAvatarComponent
+} from '../components/ui/Icons';
 
 const CHART_COLORS = ['#083c6b', '#00b4d8', '#2a9df4', '#85c1e9', '#0d9f6e', '#d97706', '#dc2626', '#dce7f5'];
 
@@ -85,7 +94,7 @@ export default function AdminDashboard() {
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button onClick={fetchData} className="btn" style={{ background: '#f4f4f5', border: '1px solid #e4e4e7', fontSize: '0.88rem' }}>
-            🔄 Refresh Data
+            Refresh Data
           </button>
         </div>
       </div>
@@ -121,15 +130,17 @@ export default function AdminDashboard() {
         <div className="animation-fade">
           <div className="grid grid-4" style={{ marginBottom: 'var(--space-2xl)' }}>
             {[
-              { icon: '💰', label: 'Total Revenue', value: '$' + stats.total_revenue.toLocaleString() },
-              { icon: '✈️', label: 'Active Bookings', value: stats.active_bookings },
-              { icon: '🌐', label: 'Countries Catalogued', value: stats.total_countries || 250 },
-              { icon: '🌍', label: 'Destinations', value: stats.total_destinations },
-              { icon: '👥', label: 'Total Users', value: stats.total_users },
-              { icon: '🏢', label: 'Integrated Providers', value: providers.length || 6 }
+              { Icon: IconQuickAction, label: 'Total Revenue', value: '$' + stats.total_revenue.toLocaleString() },
+              { Icon: IconFlight, label: 'Active Bookings', value: stats.active_bookings },
+              { Icon: IconGlobe, label: 'Countries Catalogued', value: stats.total_countries || 250 },
+              { Icon: IconLocationPin, label: 'Destinations', value: stats.total_destinations },
+              { Icon: NavTravellers, label: 'Total Users', value: stats.total_users },
+              { Icon: IconAdminOffice, label: 'Integrated Providers', value: providers.length || 6 }
             ].map((s, i) => (
               <div key={i} className="glass-card" style={{ padding: 'var(--space-lg)', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem' }}>{s.icon}</div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                  <s.Icon size={24} />
+                </div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-navy)' }}>
                   {s.value}
                 </div>
@@ -260,8 +271,15 @@ export default function AdminDashboard() {
                       </a>
                     </td>
                     <td>
-                      <span className={`badge ${p.supports_direct_booking ? 'badge-confirmed' : 'badge-pending'}`}>
-                        {p.supports_direct_booking ? '⚡ Direct API Booking' : '↗ Safe Outbound Redirect'}
+                      <span className={`badge ${p.supports_direct_booking ? 'badge-confirmed' : 'badge-pending'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        {p.supports_direct_booking ? (
+                          <>
+                            <IconQuickAction size={12} />
+                            <span>Direct API Booking</span>
+                          </>
+                        ) : (
+                          <span>Safe Outbound Redirect</span>
+                        )}
                       </span>
                     </td>
                     <td>
@@ -454,8 +472,9 @@ export default function AdminDashboard() {
                           }}
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.2rem' }}>
-                            <strong style={{ fontSize: '0.8rem', color: isSupport ? '#1d4ed8' : '#0f172a' }}>
-                              {m.sender_name} {isSupport && '🛡️'}
+                            <strong style={{ fontSize: '0.8rem', color: isSupport ? '#1d4ed8' : '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <span>{m.sender_name}</span>
+                              {isSupport && <IconShieldTrust size={12} />}
                             </strong>
                             <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
                               {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -531,14 +550,16 @@ export default function AdminDashboard() {
                 {users.map(u => (
                   <tr key={u.id}>
                     <td style={{ fontWeight: 600 }}>
-                      <span style={{ marginRight: '6px' }}>{u.avatar_url || '👤'}</span>
+                      <span style={{ marginRight: '6px', display: 'inline-flex', verticalAlign: 'middle' }}>
+                        {getAvatarComponent(u.avatar_url, 20)}
+                      </span>
                       {u.full_name}
                       {u.username && <span style={{ fontSize: '0.8rem', color: '#71717a', display: 'block' }}>@{u.username}</span>}
                     </td>
                     <td>{u.email}</td>
                     <td>
                       <span className={`badge ${u.email_verified ? 'badge-confirmed' : 'badge-pending'}`}>
-                        {u.email_verified ? '✓ Verified' : '○ Unverified'}
+                        {u.email_verified ? 'Verified' : 'Unverified'}
                       </span>
                     </td>
                     <td><span className="badge badge-standard" style={{ textTransform: 'capitalize' }}>{u.provider || 'local'}</span></td>

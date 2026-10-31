@@ -1,3 +1,4 @@
+import { IconShieldTrust, NavSecurity, IconSearch, IconEmail, IconClose, IconGlobe, IconCalendar } from '../components/ui/Icons';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -12,7 +13,6 @@ export default function PrivacyPage() {
       id: 'collection',
       number: '01',
       title: 'Information We Collect',
-      icon: '📋',
       content: `TIMS collects only the minimal personal data essential to fulfill travel bookings and deliver a personalized experience:
 • Profile & Authentication Data: Full name, verified email address, phone number (for SMS OTP delivery), username, and salted password hashes.
 • Reservation Records: Destination selections, hotel booking dates, passenger counts, room category preferences, and itinerary archives.
@@ -23,7 +23,6 @@ We never collect, store, or log sensitive government identifiers or unencrypted 
       id: 'usage',
       number: '02',
       title: 'How We Utilize Your Information',
-      icon: '⚙️',
       content: `Your data is processed strictly for legitimate operational purposes:
 • Booking Execution: Communicating guest credentials with boutique hotels, airlines, and licensed local tour operators.
 • Account Security: Generating cryptographically random 6-digit SMS OTPs, dispatching email verification links, and monitoring against brute-force attacks.
@@ -34,7 +33,6 @@ We never collect, store, or log sensitive government identifiers or unencrypted 
       id: 'sharing',
       number: '03',
       title: 'Third-Party Sharing & Data Escrow',
-      icon: '🤝',
       content: `TIMS operates under a strict Zero Data Broker policy: WE NEVER SELL, RENT, OR MONETIZE YOUR PERSONAL INFORMATION.
 We share selective details solely with:
 • Direct Travel Service Providers: Hotels and tour operators chosen by you to fulfill your itinerary.
@@ -46,7 +44,6 @@ We share selective details solely with:
       id: 'security',
       number: '04',
       title: 'Cryptographic Security & Architecture',
-      icon: '🔒',
       content: `We deploy multi-layered defense mechanisms to safeguard your data assets:
 • Passwords: Protected via Bcrypt adaptive hashing (10 computation rounds), preventing rainbow table exploits.
 • Data in Transit: Enforced TLS 1.3 encryption across all client-server communications with strict HSTS headers.
@@ -57,7 +54,6 @@ We share selective details solely with:
       id: 'cookies',
       number: '05',
       title: 'Cookie Architecture & Session Integrity',
-      icon: '🍪',
       content: `TIMS does not employ intrusive third-party advertising cookies or cross-site tracking pixels.
 Our platform uses solely First-Party Essential Cookies:
 • Authentication Session Cookie (tims_session): Set with the HttpOnly flag, SameSite='lax', and Secure flags to shield authentication tokens from malicious client-side JavaScript (XSS).
@@ -67,7 +63,6 @@ Our platform uses solely First-Party Essential Cookies:
       id: 'rights',
       number: '06',
       title: 'Your Global Privacy Rights (GDPR & CCPA)',
-      icon: '🌐',
       content: `Regardless of your physical residency, TIMS affords all travelers comprehensive privacy prerogatives:
 • Right to Access: Request a machine-readable export of all stored personal profile and reservation data.
 • Right to Rectification: Correct inaccurate or outdated details directly via your Traveler Profile.
@@ -78,28 +73,24 @@ Our platform uses solely First-Party Essential Cookies:
       id: 'retention',
       number: '07',
       title: 'Data Retention & Archival Policies',
-      icon: '📦',
       content: `We retain personal data only for as long as necessary to maintain your active account and deliver contracted travel services. Completed booking receipts and transaction ledgers are retained for a statutory period of 5 years to comply with international accounting, auditing, and tax standards. Inactive guest profiles are purged automatically after 24 months of inactivity.`
     },
     {
       id: 'minors',
       number: '08',
       title: 'Protection of Children’s Privacy',
-      icon: '👶',
       content: `TIMS is directed toward adult travelers and does not knowingly collect personal data from minors under 16 years of age without explicit guardian verification. If we detect that a child has submitted personal details without parental consent, we take immediate measures to delete the data from our repositories.`
     },
     {
       id: 'transfers',
       number: '09',
       title: 'International Cross-Border Transfers',
-      icon: '✈️',
       content: `Because travel is fundamentally global, fulfilling your bookings may involve transmitting reservation itineraries to verified hospitality partners located outside your home territory. All cross-border transmissions adhere to Standard Contractual Clauses (SCCs) and rigorous international privacy safeguards.`
     },
     {
       id: 'dpo',
       number: '10',
       title: 'Data Protection Officer & Contact',
-      icon: '✉️',
       content: `TIMS has designated an independent Data Protection Officer (DPO) to oversee ongoing compliance and assist travelers with privacy queries or data subject requests.
 You can reach our privacy governance team at:
 Email: privacy@tims-tourism.com
@@ -152,7 +143,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
 
         <div className="container" style={{ maxWidth: '1100px', position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', padding: '0.4rem 1.1rem', borderRadius: '9999px', fontSize: '0.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.15)' }}>
-            <span>🔒</span> Privacy & Data Governance • Version 2.4
+            <NavSecurity size={16} /> Privacy & Data Governance • Version 2.4
           </div>
 
           <h1 style={{
@@ -187,7 +178,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
             paddingTop: '2rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>🛡️</div>
+              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconShieldTrust size={20} /></div>
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#71717a', letterSpacing: '0.05em', fontWeight: 600 }}>Zero Selling</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f4f4f5' }}>Never Sold or Monetized</div>
@@ -195,7 +186,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>🍪</div>
+              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconShieldTrust size={20} /></div>
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#71717a', letterSpacing: '0.05em', fontWeight: 600 }}>No Trackers</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f4f4f5' }}>Zero 3rd-Party Ads</div>
@@ -203,7 +194,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>🔐</div>
+              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconShieldTrust size={20} /></div>
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#71717a', letterSpacing: '0.05em', fontWeight: 600 }}>Session Safety</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f4f4f5' }}>HttpOnly Secure Cookies</div>
@@ -211,7 +202,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>⚖️</div>
+              <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconShieldTrust size={20} /></div>
               <div>
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#71717a', letterSpacing: '0.05em', fontWeight: 600 }}>Compliance</div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f4f4f5' }}>GDPR & CCPA Standard</div>
@@ -240,7 +231,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
         }}>
           {/* Live Search Filter */}
           <div style={{ position: 'relative', flex: '1 1 280px', maxWidth: '420px' }}>
-            <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#a1a1aa' }}>🔍</span>
+            <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center" }}><IconSearch size={16} /></span>
             <input
               type="text"
               placeholder="Search data collection, cookies, GDPR rights..."
@@ -262,7 +253,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
                 onClick={() => setSearchQuery('')}
                 style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#a1a1aa', cursor: 'pointer', fontSize: '0.9rem' }}
               >
-                ✕
+                ×
               </button>
             )}
           </div>
@@ -280,7 +271,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
                 border: '1px solid #e4e4e7'
               }}
             >
-              {copied ? '✓ Link Copied!' : '🔗 Share Policy'}
+              {copied ? '• Link Copied!' : ' Share Policy'}
             </button>
             
             <button
@@ -294,7 +285,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
                 border: '1px solid #e4e4e7'
               }}
             >
-              🖨️ Print Policy
+               Print Policy
             </button>
 
             <Link
@@ -373,7 +364,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
                     textDecoration: 'none'
                   }}
                 >
-                  ✉️ privacy@tims-tourism.com →
+                   privacy@tims-tourism.com →
                 </a>
               </div>
             </div>
@@ -383,7 +374,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
           <main style={{ gridColumn: 'span 8' }}>
             {filteredSections.length === 0 ? (
               <div style={{ background: '#ffffff', borderRadius: '16px', padding: '4rem 2rem', textAlign: 'center', border: '1px solid #e4e4e7' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🔍</div>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}><IconSearch size={48} /></div>
                 <h3 style={{ fontSize: '1.25rem', color: '#18181b', marginBottom: '0.5rem' }}>No matching clauses found</h3>
                 <p style={{ color: '#71717a', fontSize: '0.95rem' }}>Try searching for a different keyword or clear the search field to view the complete policy.</p>
                 <button
@@ -424,7 +415,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
                           justifyContent: 'center',
                           fontSize: '1.25rem'
                         }}>
-                          {sec.icon}
+                          <IconShieldTrust size={20} />
                         </div>
                         <div>
                           <div style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: '#a1a1aa', fontWeight: 600 }}>ARTICLE {sec.number}</div>
@@ -482,7 +473,7 @@ Response SLA: All privacy inquiries are acknowledged within 24 hours and resolve
                   gap: '1.5rem',
                   marginTop: '1rem'
                 }}>
-                  <div style={{ fontSize: '2.5rem' }}>🔐</div>
+                  <IconShieldTrust size={40} />
                   <div>
                     <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#115e59', marginBottom: '0.25rem', fontFamily: 'var(--font-sans)' }}>
                       Strict Data Hygiene & Sovereignty

@@ -1,3 +1,4 @@
+import { getAvatarComponent, NavSecurity, NavProfile, IconSuccess, IconWarning } from '../components/ui/Icons';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../features/auth/AuthContext';
 import { authAPI } from '../api/client';
@@ -9,13 +10,13 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const { success, error } = useToast();
 
-  const avatarPresets = ['🏔️', '🌴', '🎒', '🧭', '✈️', '🗺️', '⛵', '🏨'];
+  const avatarPresets = ['mountain', 'tropical', 'backpack', 'compass', 'aviator', 'cartographer', 'sailor', 'hospitality'];
 
   const [profile, setProfile] = useState({
     full_name: user?.full_name || '',
     username: user?.username || '',
     phone: user?.phone || '',
-    avatar_url: user?.avatar_url || '🏔️',
+    avatar_url: user?.avatar_url || 'mountain',
   });
 
   const [passwords, setPasswords] = useState({
@@ -33,7 +34,7 @@ export default function ProfilePage() {
         full_name: user.full_name || '',
         username: user.username || '',
         phone: user.phone || '',
-        avatar_url: user.avatar_url || '🏔️',
+        avatar_url: user.avatar_url || 'mountain',
       });
     }
   }, [user]);
@@ -93,7 +94,7 @@ export default function ProfilePage() {
       <div className="card" style={{ marginBottom: '2rem', background: '#fafafa' }}>
         <div className="card-body" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
           <div style={{ fontSize: '3rem', width: '72px', height: '72px', borderRadius: '50%', background: '#fff', border: '2px solid #e4e4e7', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-            {profile.avatar_url || '👤'}
+            {getAvatarComponent(profile.avatar_url, 48)}
           </div>
           <div style={{ flex: 1 }}>
             <h2 style={{ fontFamily: 'var(--font-sans)', fontSize: '1.35rem', fontWeight: 700, margin: 0, color: '#09090b' }}>
@@ -104,13 +105,13 @@ export default function ProfilePage() {
             </div>
             <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
               <span className="badge-pill">
-                {user?.role === 'admin' ? '🛡️ Admin' : '👤 Traveler'}
+                {user?.role === 'admin' ? 'Admin' : 'Traveler'}
               </span>
               <span className="badge-pill" style={{ background: user?.email_verified ? '#dcfce7' : '#fef9c3', color: user?.email_verified ? '#166534' : '#854d0e' }}>
-                {user?.email_verified ? '✓ Verified Email' : '⚠ Unverified Email'}
+                {user?.email_verified ? 'Verified Email' : 'Unverified Email'}
               </span>
               <span className="badge-pill" style={{ textTransform: 'capitalize' }}>
-                🔗 Provider: {user?.provider || 'local'}
+                Provider: {user?.provider || 'local'}
               </span>
             </div>
           </div>

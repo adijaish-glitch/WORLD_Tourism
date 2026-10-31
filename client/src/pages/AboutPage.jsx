@@ -1,11 +1,20 @@
 import { Link } from 'react-router-dom';
+import {
+  IconAdminOffice,
+  IconHolidayPackage,
+  IconQuickAction,
+  NavSupport,
+  IconGlobe,
+  AvatarTropical,
+  IconShieldTrust
+} from '../components/ui/Icons';
 
 export default function AboutPage() {
   const team = [
-    { name: 'Operations', icon: '⚙️', desc: 'Managing logistics and partnerships with hotels and airlines worldwide.' },
-    { name: 'Curation', icon: '✨', desc: 'Hand-picking destinations and designing unforgettable itineraries.' },
-    { name: 'Technology', icon: '💻', desc: 'Building seamless booking experiences with cutting-edge tools.' },
-    { name: 'Support', icon: '🤝', desc: 'Available 24/7 to ensure every journey goes smoothly.' },
+    { name: 'Operations', Icon: IconAdminOffice, desc: 'Managing logistics and partnerships with hotels and airlines worldwide.' },
+    { name: 'Curation', Icon: IconHolidayPackage, desc: 'Hand-picking destinations and designing unforgettable itineraries.' },
+    { name: 'Technology', Icon: IconQuickAction, desc: 'Building seamless booking experiences with cutting-edge tools.' },
+    { name: 'Support', Icon: NavSupport, desc: 'Available 24/7 to ensure every journey goes smoothly.' },
   ];
 
   const stats = [
@@ -68,7 +77,7 @@ export default function AboutPage() {
         <div className="grid grid-4" style={{ marginBottom: '5rem' }}>
           {team.map((t, i) => (
             <div key={i} className="card" style={{ textAlign: 'center', padding: '2.5rem 1.5rem' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>{t.icon}</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}><t.Icon size={40} /></div>
               <h3 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.75rem', color: '#09090b' }}>
                 {t.name}
               </h3>
@@ -84,12 +93,12 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-3">
             {[
-              { title: 'Authenticity', desc: 'We showcase destinations as they truly are — no filters, no false promises.', icon: '🌍' },
-              { title: 'Sustainability', desc: 'We partner with eco-conscious hotels and promote responsible tourism.', icon: '🌱' },
-              { title: 'Accessibility', desc: 'Premium travel experiences should be available to everyone, everywhere.', icon: '♿' },
+              { title: 'Authenticity', desc: 'We showcase destinations as they truly are — no filters, no false promises.', Icon: IconGlobe },
+              { title: 'Sustainability', desc: 'We partner with eco-conscious hotels and promote responsible tourism.', Icon: AvatarTropical },
+              { title: 'Accessibility', desc: 'Premium travel experiences should be available to everyone, everywhere.', Icon: IconShieldTrust },
             ].map((v, i) => (
               <div key={i} style={{ padding: '1.5rem' }}>
-                <div style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>{v.icon}</div>
+                <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center' }}><v.Icon size={28} /></div>
                 <h3 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1rem', marginBottom: '0.5rem', color: '#09090b' }}>
                   {v.title}
                 </h3>

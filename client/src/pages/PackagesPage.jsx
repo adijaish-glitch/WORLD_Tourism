@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { packagesAPI } from '../api/client';
+import { IconHolidayPackage, IconLocationPin } from '../components/ui/Icons';
 
 export default function PackagesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -76,7 +77,9 @@ export default function PackagesPage() {
         </div>
       ) : packages.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📦</div>
+          <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+            <IconHolidayPackage size={48} />
+          </div>
           <h3>No packages found</h3>
           <p>Try adjusting your price filters.</p>
         </div>
@@ -100,7 +103,10 @@ export default function PackagesPage() {
                   <div className="badge badge-standard">{p.duration_days} Days</div>
                 </div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: 600, marginBottom: 'var(--space-sm)' }}>
-                  📍 {p.dest_name}{p.dest_country ? ` • ${p.dest_country}` : ''}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <IconLocationPin size={14} />
+                    <span>{p.dest_name}{p.dest_country ? ` • ${p.dest_country}` : ''}</span>
+                  </span>
                 </div>
                 <p className="card-text" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 'var(--space-md)' }}>
                   {p.description}

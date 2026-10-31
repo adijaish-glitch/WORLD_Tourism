@@ -27,17 +27,7 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const AppleIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.65-.8 1.09-1.92.97-3.04-.94.04-2.07.63-2.73 1.41-.58.67-1.09 1.76-.95 2.85 1.05.08 2.06-.42 2.71-1.22z"/>
-  </svg>
-);
 
-const GitHubIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor">
-    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-  </svg>
-);
 
 const EyeIcon = ({ off }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -124,9 +114,6 @@ export function LoginPage() {
     verifyPhoneOtp,
     loginWithFirebase,
     oauthGoogle,
-    oauthApple,
-    socialLogin,
-    guestLogin,
     setUser
   } = useAuth();
   const { success, error } = useToast();
@@ -382,64 +369,11 @@ export function LoginPage() {
   };
 
 
-  // Apple Sign-In
-  const handleApple = async () => {
-    setLoading(true);
-    setFormError('');
-    try {
-      const user = await socialLogin({
-        provider: 'apple',
-        provider_id: `apple_${Date.now()}`,
-        email: 'apple.traveler@example.com',
-        full_name: 'Apple Traveler',
-        avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=apple'
-      });
-      success('Signed in with Apple!');
-      navigate(user.role === 'admin' ? '/admin' : '/dashboard');
-    } catch (err) {
-      setFormError(err.response?.data?.error || 'Apple sign-in failed');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  // GitHub Sign-In
-  const handleGitHub = async () => {
-    setLoading(true);
-    setFormError('');
-    try {
-      const user = await socialLogin({
-        provider: 'github',
-        provider_id: `github_${Date.now()}`,
-        email: 'github.traveler@example.com',
-        full_name: 'GitHub Traveler',
-        avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=github'
-      });
-      success('Signed in with GitHub!');
-      navigate(user.role === 'admin' ? '/admin' : '/dashboard');
-    } catch (err) {
-      setFormError(err.response?.data?.error || 'GitHub sign-in failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Guest Pass
-  const handleGuest = async () => {
-    setLoading(true);
-    try {
-      const user = await guestLogin();
-      success('Logged in with Guest Access!');
-      navigate('/dashboard');
-    } catch (err) {
-      setFormError(err.response?.data?.error || 'Guest login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="page container printer-container">
+      <div className="printer-slit-shield"></div>
       <div className="printer-slit"></div>
       <div className="receipt-chamber">
         <div className="receipt-wrapper">
@@ -480,24 +414,8 @@ export function LoginPage() {
             <span className="google-btn-text">{loading ? 'Connecting to Google...' : 'Continue with Google'}</span>
           </button>
 
-          {/* Alternative Social Sign-in Buttons */}
-          <div className="social-grid">
-            <button type="button" className="social-btn" onClick={handleApple} disabled={loading} title="Sign in with Apple">
-              <AppleIcon />
-              <span>Apple</span>
-            </button>
-            <button type="button" className="social-btn" onClick={handleGitHub} disabled={loading} title="Sign in with GitHub">
-              <GitHubIcon />
-              <span>GitHub</span>
-            </button>
-          </div>
-
-          <button type="button" className="guest-btn" onClick={handleGuest} disabled={loading}>
-            <span>🎟️</span> Instant Guest Pass (Demo Mode)
-          </button>
-
           <div className="auth-divider">
-            <span>Or Choose Sign-In Mode</span>
+            <span>Or Sign In With Credentials</span>
           </div>
 
           {/* Mode Switcher Tabs */}
@@ -713,7 +631,7 @@ export function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const { isAuthenticated, loading: authLoading, register, oauthGoogle, socialLogin, setUser } = useAuth();
+  const { isAuthenticated, loading: authLoading, register, oauthGoogle, setUser } = useAuth();
   const { success, error } = useToast();
   const navigate = useNavigate();
 
@@ -866,28 +784,11 @@ export function RegisterPage() {
     }
   };
 
-  const handleSocial = async (provider) => {
-    setLoading(true);
-    try {
-      const mockSocial = {
-        provider,
-        provider_id: `${provider}_${Date.now()}`,
-        email: `${provider}.newuser@example.com`,
-        full_name: `${provider.charAt(0).toUpperCase() + provider.slice(1)} Traveler`,
-        avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${provider}`
-      };
-      await socialLogin(mockSocial);
-      success(`Signed up with ${provider}!`);
-      navigate('/dashboard');
-    } catch (err) {
-      setFormError(err.response?.data?.error || `Social sign-up failed`);
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   return (
     <div className="page container printer-container">
+      <div className="printer-slit-shield"></div>
       <div className="printer-slit"></div>
       <div className="receipt-chamber">
         <div className="receipt-wrapper">
@@ -928,20 +829,8 @@ export function RegisterPage() {
             <span className="google-btn-text">{loading ? 'Connecting to Google...' : 'Continue with Google'}</span>
           </button>
 
-          {/* Alternative Social Sign up */}
-          <div className="social-grid">
-            <button type="button" className="social-btn" onClick={() => handleSocial('apple')} disabled={loading} title="Sign up with Apple">
-              <AppleIcon />
-              <span>Apple</span>
-            </button>
-            <button type="button" className="social-btn" onClick={() => handleSocial('github')} disabled={loading} title="Sign up with GitHub">
-              <GitHubIcon />
-              <span>GitHub</span>
-            </button>
-          </div>
-
           <div className="auth-divider">
-            <span>Or register credentials</span>
+            <span>Or Register Passenger Credentials</span>
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -1165,6 +1054,7 @@ export function ForgotPasswordPage() {
 
   return (
     <div className="page container printer-container">
+      <div className="printer-slit-shield"></div>
       <div className="printer-slit"></div>
       <div className="receipt-chamber">
         <div className="receipt-wrapper">
@@ -1312,6 +1202,7 @@ export function ResetPasswordPage() {
 
   return (
     <div className="page container printer-container">
+      <div className="printer-slit-shield"></div>
       <div className="printer-slit"></div>
       <div className="receipt-chamber">
         <div className="receipt-wrapper">
@@ -1518,6 +1409,7 @@ export function VerifyEmailPage() {
 
   return (
     <div className="page container printer-container">
+      <div className="printer-slit-shield"></div>
       <div className="printer-slit"></div>
       <div className="receipt-chamber">
         <div className="receipt-wrapper">

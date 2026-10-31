@@ -348,6 +348,17 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 400; letter-spacing: -
 }
 
 /* Machine Dispenser Slot / Kiosk Terminal Bezel */
+.printer-slit-shield {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(0.85rem + 30px);
+  background: #ffffff;
+  z-index: 45;
+  pointer-events: none;
+}
+
 .printer-slit {
   position: absolute;
   top: 0.85rem;
@@ -424,52 +435,53 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 400; letter-spacing: -
   width: 100%;
   display: flex;
   justify-content: center;
-  /* Top aligns right at the aperture line (~36px below container top) */
-  margin-top: calc(0.85rem + 28px);
-  /* CRITICAL: Clip EVERYTHING above the slot aperture mouth line (Y = 0)!
-     This guarantees the paper is completely hidden above the slot and only emerges
-     rolling downwards out of the black mouth. */
-  clip-path: polygon(-150% 0px, 250% 0px, 250% 9999px, -150% 9999px);
-  perspective: 1200px;
+  /* Top aligns directly inside the aperture line */
+  margin-top: calc(0.85rem + 26px);
+  /* Foolproof Dual-Layer Clipping: Mask Image + Polygon Clip */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, transparent 2px, black 3px, black 100%);
+  mask-image: linear-gradient(to bottom, transparent 0px, transparent 2px, black 3px, black 100%);
+  clip-path: polygon(-200% 0px, 300% 0px, 300% 99999px, -200% 99999px);
   overflow: visible;
   z-index: 20;
 }
 
 /* ─── Rolling Paper Bill Animation Container ─── */
 .receipt-wrapper {
-  animation: rollOutBill 2.4s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  animation: rollOutBill 2.4s cubic-bezier(0.18, 0.89, 0.32, 1) forwards;
   transform-origin: top center;
   position: relative;
   z-index: 10;
   margin-top: 0;
 }
 
-/* Rolling animation emerging from the slit mouth */
+/* Physical roller feed animation emerging downward from the slit mouth */
 @keyframes rollOutBill {
   0% {
-    transform: translateY(-100%) rotateX(-22deg) scaleY(0.9);
-    opacity: 0.2;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+    transform: translateY(-100%) scaleY(0.65);
+    opacity: 0;
   }
-  16% {
+  10% {
     opacity: 1;
-    transform: translateY(-72%) rotateX(-16deg) scaleY(0.93);
+    transform: translateY(-84%) scaleY(0.74);
   }
-  38% {
-    transform: translateY(-42%) rotateX(-10deg) scaleY(0.96);
+  32% {
+    transform: translateY(-52%) scaleY(0.86);
   }
-  64% {
-    transform: translateY(-16%) rotateX(-4deg) scaleY(0.99);
+  58% {
+    transform: translateY(-22%) scaleY(0.95);
   }
-  84% {
-    /* Gentle organic paper roll bounce at full extension */
-    transform: translateY(1.2%) rotateX(1.5deg) scaleY(1.002);
+  78% {
+    transform: translateY(-4%) scaleY(0.99);
   }
-  94% {
-    transform: translateY(-0.3%) rotateX(-0.6deg) scaleY(0.999);
+  88% {
+    /* Organic paper bounce when the receipt reaches its full length */
+    transform: translateY(1.2%) scaleY(1.003);
+  }
+  95% {
+    transform: translateY(-0.3%) scaleY(0.999);
   }
   100% {
-    transform: translateY(0) rotateX(0deg) scaleY(1);
+    transform: translateY(0) scaleY(1);
     opacity: 1;
     filter: drop-shadow(0 32px 70px -15px rgba(15, 23, 42, 0.32));
   }

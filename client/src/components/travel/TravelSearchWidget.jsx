@@ -1,12 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  IconHotel,
+  IconFlight,
+  IconTrain,
+  IconBus,
+  IconHolidayPackage,
+  IconWarning,
+  IconSearch
+} from '../ui/Icons';
 
 const TABS = [
-  { id: 'hotels', label: 'Hotels & Stays', icon: '🏨' },
-  { id: 'flights', label: 'Flights', icon: '✈️' },
-  { id: 'trains', label: 'Trains', icon: '🚆' },
-  { id: 'buses', label: 'Buses', icon: '🚌' },
-  { id: 'packages', label: 'Holiday Packages', icon: '🌴' },
+  { id: 'hotels', label: 'Hotels & Stays', Icon: IconHotel },
+  { id: 'flights', label: 'Flights', Icon: IconFlight },
+  { id: 'trains', label: 'Trains', Icon: IconTrain },
+  { id: 'buses', label: 'Buses', Icon: IconBus },
+  { id: 'packages', label: 'Holiday Packages', Icon: IconHolidayPackage },
 ];
 
 export default function TravelSearchWidget({ initialCategory = 'hotels', onSearchSubmit }) {
@@ -176,7 +185,7 @@ export default function TravelSearchWidget({ initialCategory = 'hotels', onSearc
                 whiteSpace: 'nowrap'
               }}
             >
-              <span>{tab.icon}</span>
+              <span><tab.Icon size={20} /></span>
               <span>{tab.label}</span>
             </button>
           );
@@ -196,7 +205,7 @@ export default function TravelSearchWidget({ initialCategory = 'hotels', onSearc
           alignItems: 'center',
           gap: '8px'
         }}>
-          <span>⚠️</span>
+          <IconWarning size={16} />
           <span>{validationError}</span>
         </div>
       )}

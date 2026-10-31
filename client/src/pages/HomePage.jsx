@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import TravelSearchWidget from '../components/travel/TravelSearchWidget';
 import { packagesAPI, hotelsAPI } from '../api/client';
+import {
+  IconFlight,
+  IconTrain,
+  IconBus,
+  IconGlobe,
+  IconLocationPin,
+  IconQuickAction,
+  IconHotel,
+  IconExploreAtlas
+} from '../components/ui/Icons';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -93,21 +103,21 @@ export default function HomePage() {
           <Link to="/packages" className="btn btn-primary">
             Explore Packages
           </Link>
-          <Link to="/countries" className="btn" style={{ background: '#f4f4f5', color: '#18181b', border: '1px solid #e4e4e7' }}>
-            🌍 Explore 250 Countries
+          <Link to="/countries" className="btn" style={{ background: '#f4f4f5', color: '#18181b', border: '1px solid #e4e4e7', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <IconGlobe size={18} /> Explore 250 Countries
           </Link>
           <Link to="/explore" className="btn-icon-circular" title="Interactive 3D Globe">
-            🌐
+            <IconGlobe size={22} />
           </Link>
         </div>
 
         {/* Social Proof / Partner Bar */}
         <div className="logo-bar">
-          <span>✈ MAKEMYTRIP</span>
-          <span>🚆 IRCTC OFFICIAL</span>
-          <span>✈ AMADEUS</span>
-          <span>🚌 REDBUS</span>
-          <span>🏨 MARRIOTT</span>
+          <span><IconFlight size={16} /> MAKEMYTRIP</span>
+          <span><IconTrain size={16} /> IRCTC OFFICIAL</span>
+          <span><IconFlight size={16} /> AMADEUS</span>
+          <span><IconBus size={16} /> REDBUS</span>
+          <span><IconHotel size={16} /> MARRIOTT</span>
           <span>⭐ TRIPADVISOR</span>
         </div>
       </div>
@@ -118,7 +128,7 @@ export default function HomePage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
               <div className="badge-pill" style={{ marginBottom: '0.5rem', background: '#e0f2fe', color: '#0369a1' }}>
-                🚀 Rapid Booking Routes
+                <IconQuickAction size={14} /> Rapid Booking Routes
               </div>
               <h2 style={{ fontSize: '2.2rem', fontFamily: 'var(--font-serif)', margin: 0, color: '#0f172a' }}>
                 Popular Flights & <span className="italic" style={{ color: '#2563eb' }}>Intercity Routes</span>
@@ -135,10 +145,10 @@ export default function HomePage() {
             gap: '1.25rem'
           }}>
             {[
-              { type: 'Flight', icon: '✈️', route: 'New York (JFK) → Paris (CDG)', airline: 'Air France', price: '$520', link: '/search?category=flights&origin=New+York&destination=Paris' },
-              { type: 'Flight', icon: '✈️', route: 'London (LHR) → Dubai (DXB)', airline: 'Emirates Express', price: '$460', link: '/search?category=flights&origin=London&destination=Dubai' },
-              { type: 'Train', icon: '🚆', route: 'New Delhi → Varanasi (Vande Bharat)', airline: 'IRCTC Superfast', price: '$24', link: '/search?category=trains&origin=New+Delhi&destination=Varanasi' },
-              { type: 'Bus', icon: '🚌', route: 'Bengaluru → Goa (Volvo AC Sleeper)', airline: 'FlyBus / Intercity', price: '$18', link: '/search?category=buses&origin=Bengaluru&destination=Goa' },
+              { type: 'Flight', Icon: IconFlight, route: 'New York (JFK) → Paris (CDG)', airline: 'Air France', price: '$520', link: '/search?category=flights&origin=New+York&destination=Paris' },
+              { type: 'Flight', Icon: IconFlight, route: 'London (LHR) → Dubai (DXB)', airline: 'Emirates Express', price: '$460', link: '/search?category=flights&origin=London&destination=Dubai' },
+              { type: 'Train', Icon: IconTrain, route: 'New Delhi → Varanasi (Vande Bharat)', airline: 'IRCTC Superfast', price: '$24', link: '/search?category=trains&origin=New+Delhi&destination=Varanasi' },
+              { type: 'Bus', Icon: IconBus, route: 'Bengaluru → Goa (Volvo AC Sleeper)', airline: 'FlyBus / Intercity', price: '$18', link: '/search?category=buses&origin=Bengaluru&destination=Goa' },
             ].map((r, idx) => (
               <Link
                 key={idx}
@@ -165,7 +175,7 @@ export default function HomePage() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <span style={{ fontSize: '1.4rem' }}>{r.icon}</span>
+                  <span style={{ display: 'flex', alignItems: 'center' }}><r.Icon size={24} /></span>
                   <span style={{
                     fontSize: '0.75rem',
                     fontWeight: 700,
@@ -262,8 +272,9 @@ export default function HomePage() {
                   </div>
                   <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
-                      <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, marginBottom: '4px' }}>
-                        📍 {pkg.dest_name || 'Global Destination'}
+                      <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <IconLocationPin size={14} />
+                        <span>{pkg.dest_name || 'Global Destination'}</span>
                       </div>
                       <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.5rem 0', color: '#0f172a' }}>
                         {pkg.name}
@@ -279,8 +290,9 @@ export default function HomePage() {
                           ${pkg.base_price} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>/ person</span>
                         </div>
                       </div>
-                      <Link to={`/book/${pkg.id}`} className="btn btn-primary" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', borderRadius: '10px' }}>
-                        Book Trip ⚡
+                      <Link to={`/book/${pkg.id}`} className="btn btn-primary" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <span>Book Trip</span>
+                        <IconQuickAction size={14} />
                       </Link>
                     </div>
                   </div>

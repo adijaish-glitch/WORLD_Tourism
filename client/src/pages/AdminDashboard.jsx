@@ -3,6 +3,7 @@ import { reportsAPI, bookingsAPI, usersAPI, travelAPI, accountAPI } from '../api
 import { useAuth } from '../features/auth/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useToast } from '../components/ui/ToastContext';
+import { IconAdminOffice } from '../components/ui/Icons';
 
 const CHART_COLORS = ['#083c6b', '#00b4d8', '#2a9df4', '#85c1e9', '#0d9f6e', '#d97706', '#dc2626', '#dce7f5'];
 
@@ -76,8 +77,8 @@ export default function AdminDashboard() {
     <div className="container page">
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <div className="badge-pill" style={{ marginBottom: '0.5rem', background: '#fef3c7', color: '#92400e' }}>
-            🛡️ Administrative Authority
+          <div className="badge-pill" style={{ marginBottom: '0.5rem', background: '#fef3c7', color: '#92400e', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <IconAdminOffice size={16} /> Administrative Authority
           </div>
           <h1>TIMS Executive Control Console</h1>
           <p>System overview, multi-provider travel integrations, booking oversight, and audit logs.</p>

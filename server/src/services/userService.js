@@ -135,7 +135,11 @@ class UserService {
       }
     }
 
-    return this.findById(sqliteId || (mongoUser && mongoUser._id));
+    if (mongoUser) {
+      return this._formatUser(mongoUser);
+    }
+
+    return this.findById(sqliteId);
   }
 
   // FIND BY EMAIL
@@ -223,7 +227,7 @@ class UserService {
       try {
         let user = null;
         if (typeof id === 'number' || !isNaN(Number(id))) {
-          user = await User.findOne({ sqlite_id: Number(id) });
+          user = await User.findOne({ sqlite_id: Number(id) }).sort({ _id: -1 });
         } else if (id.toString().match(/^[0-9a-fA-F]{24}$/)) {
           user = await User.findById(id);
         }
@@ -326,7 +330,7 @@ class UserService {
         const query = typeof id === 'number' || !isNaN(Number(id))
           ? { sqlite_id: Number(id) }
           : { _id: id };
-        await User.updateOne(query, { $set: updateData });
+        await User.updateMany(query, { $set: updateData });
       } catch (err) {
         console.warn('MongoDB update error:', err.message);
       }

@@ -3,6 +3,23 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 import { useToast } from '../components/ui/ToastContext';
 import { accountAPI, bookingsAPI } from '../api/client';
+import {
+  NavProfile,
+  NavTrips,
+  NavWishlist,
+  NavTravellers,
+  NavSecurity,
+  NavNotifications,
+  NavSupport,
+  IconQuickAction,
+  IconWarning,
+  IconSuccess,
+  IconShieldTrust,
+  IconPhoneOtp,
+  IconLocationPin,
+  IconCalendar,
+  getAvatarComponent
+} from '../components/ui/Icons';
 
 export default function AccountPage() {
   const { user, setUser, logout } = useAuth();
@@ -29,7 +46,7 @@ export default function AccountPage() {
   // ──────────────────────────────────────────
   // 1. PERSONAL PROFILE STATE
   // ──────────────────────────────────────────
-  const avatarPresets = ['🏔️', '🌴', '🎒', '🧭', '✈️', '🗺️', '⛵', '🏨', '🏰', '🌅'];
+  const avatarPresets = ['🏔️', '🌴', '🎒', '🧭', '✈️', '🗺️', '⛵', '🏨'];
   const [profileForm, setProfileForm] = useState({
     full_name: user?.full_name || '',
     username: user?.username || '',
@@ -485,7 +502,6 @@ export default function AccountPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
           <div style={{
-            fontSize: '3rem',
             background: '#f1f5f9',
             width: '84px',
             height: '84px',
@@ -493,9 +509,14 @@ export default function AccountPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            border: '2px solid #e2e8f0'
+            border: '2px solid #e2e8f0',
+            overflow: 'hidden'
           }}>
-            {user?.avatar_url || '🏔️'}
+            {user?.avatar_url && user.avatar_url.startsWith('http') ? (
+              <img src={user.avatar_url} alt={user.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              getAvatarComponent(user?.avatar_url || '🏔️', 72)
+            )}
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -520,8 +541,9 @@ export default function AccountPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <Link to="/search" className="btn btn-primary" style={{ borderRadius: '12px', padding: '0.6rem 1.25rem', fontWeight: 700 }}>
-            Book Next Trip ⚡
+          <Link to="/search" className="btn btn-primary" style={{ borderRadius: '12px', padding: '0.6rem 1.25rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <IconQuickAction size={14} />
+            <span>Book Next Trip</span>
           </Link>
           <button
             onClick={() => { logout(); navigate('/'); }}
@@ -556,15 +578,16 @@ export default function AccountPage() {
           </div>
 
           {[
-            { id: 'profile', icon: '👤', label: 'Personal Profile' },
-            { id: 'bookings', icon: '🧳', label: 'My Trips & Bookings', count: bookings.length },
-            { id: 'wishlist', icon: '❤️', label: 'Wishlist & Saved Places', count: wishlist.length },
-            { id: 'travellers', icon: '👥', label: 'Saved Travellers', count: travellers.length },
-            { id: 'security', icon: '🛡️', label: 'Login & Security' },
-            { id: 'preferences', icon: '🔔', label: 'Notifications & Preferences' },
-            { id: 'support', icon: '💬', label: 'Help & Support', count: tickets.filter(t => t.status !== 'closed').length },
+            { id: 'profile', Icon: NavProfile, label: 'Personal Profile' },
+            { id: 'bookings', Icon: NavTrips, label: 'My Trips & Bookings', count: bookings.length },
+            { id: 'wishlist', Icon: NavWishlist, label: 'Wishlist & Saved Places', count: wishlist.length },
+            { id: 'travellers', Icon: NavTravellers, label: 'Saved Travellers', count: travellers.length },
+            { id: 'security', Icon: NavSecurity, label: 'Login & Security' },
+            { id: 'preferences', Icon: NavNotifications, label: 'Notifications & Preferences' },
+            { id: 'support', Icon: NavSupport, label: 'Help & Support', count: tickets.filter(t => t.status !== 'closed').length },
           ].map(item => {
             const isActive = activeTab === item.id;
+            const ItemIcon = item.Icon;
             return (
               <button
                 key={item.id}
@@ -590,7 +613,7 @@ export default function AccountPage() {
                 onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span style={{ fontSize: '1.15rem' }}>{item.icon}</span>
+                  <ItemIcon size={18} />
                   <span>{item.label}</span>
                 </div>
                 {item.count !== undefined && item.count > 0 && (
@@ -642,17 +665,21 @@ export default function AccountPage() {
                         type="button"
                         onClick={() => setProfileForm({ ...profileForm, avatar_url: preset })}
                         style={{
-                          fontSize: '1.5rem',
-                          width: '46px',
-                          height: '46px',
-                          borderRadius: '12px',
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '14px',
                           border: profileForm.avatar_url === preset ? '2px solid #16a34a' : '1px solid #e2e8f0',
-                          background: profileForm.avatar_url === preset ? '#dcfce7' : '#f8fafc',
+                          background: profileForm.avatar_url === preset ? '#dcfce7' : '#ffffff',
                           cursor: 'pointer',
-                          transition: 'transform 0.15s ease'
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '4px',
+                          boxShadow: profileForm.avatar_url === preset ? '0 0 0 3px rgba(22, 163, 74, 0.2)' : 'none',
+                          transition: 'all 0.15s ease'
                         }}
                       >
-                        {preset}
+                        {getAvatarComponent(preset, 34)}
                       </button>
                     ))}
                   </div>
@@ -689,8 +716,8 @@ export default function AccountPage() {
                 <div style={{ marginBottom: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <label className="label" style={{ fontWeight: 700 }}>Verified Email Address</label>
-                    <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 700 }}>
-                      🔒 Protected Identity
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: '#16a34a', fontWeight: 700 }}>
+                      <IconShieldTrust size={14} /> Protected Identity
                     </span>
                   </div>
                   <input
@@ -708,16 +735,16 @@ export default function AccountPage() {
                 {/* Phone Number with Twilio SMS Verification */}
                 <div style={{ marginBottom: '1.75rem', background: '#f8fafc', padding: '1.25rem', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <label className="label" style={{ fontWeight: 700, margin: 0 }}>
-                      📱 Phone Number (SMS & Itinerary Alerts)
+                    <label className="label" style={{ fontWeight: 700, margin: 0, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <IconPhoneOtp size={16} /> Phone Number (SMS & Itinerary Alerts)
                     </label>
                     {user?.phone_verified ? (
-                      <span className="badge" style={{ background: '#dcfce7', color: '#15803d', fontWeight: 700 }}>
-                        ✓ Verified via Twilio SMS
+                      <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#dcfce7', color: '#15803d', fontWeight: 700 }}>
+                        <IconSuccess size={13} /> Verified via Twilio SMS
                       </span>
                     ) : (
-                      <span className="badge" style={{ background: '#fef3c7', color: '#b45309', fontWeight: 700 }}>
-                        ⚠️ Verification Pending
+                      <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#fef3c7', color: '#b45309', fontWeight: 700 }}>
+                        <IconWarning size={13} /> Verification Pending
                       </span>
                     )}
                   </div>
@@ -872,7 +899,9 @@ export default function AccountPage() {
                   border: '1px solid #e2e8f0',
                   textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🧳</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                    <NavTrips size={54} />
+                  </div>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>
                     No matching travel bookings found
                   </h3>
@@ -941,8 +970,18 @@ export default function AccountPage() {
                           <h3 style={{ margin: '0 0 0.35rem 0', fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
                             {b.package_name || b.hotel_name || `${b.dest_name || 'Travel Journey'}`}
                           </h3>
-                          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
-                            📍 {b.dest_name ? `${b.dest_name}, ${b.dest_country || ''}` : 'Confirmed Travel Route'} ∙ 📅 {b.check_in} to {b.check_out} ∙ 👥 {b.travelers} Traveler(s)
+                          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              <IconLocationPin size={13} /> {b.dest_name ? `${b.dest_name}, ${b.dest_country || ''}` : 'Confirmed Travel Route'}
+                            </span>
+                            <span>∙</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              <IconCalendar size={13} /> {b.check_in} to {b.check_out}
+                            </span>
+                            <span>∙</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              <NavTravellers size={13} /> {b.travelers} Traveler(s)
+                            </span>
                           </p>
                         </div>
 
@@ -1052,7 +1091,9 @@ export default function AccountPage() {
                   border: '1px solid #e2e8f0',
                   textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❤️</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                    <NavWishlist size={54} />
+                  </div>
                   <h3 style={{ margin: '0 0 0.5rem 0' }}>Your wishlist is empty</h3>
                   <p style={{ color: '#64748b', margin: '0 0 1.5rem 0' }}>
                     Click the bookmark or heart icon when exploring destinations or packages to save them here.
@@ -1202,7 +1243,9 @@ export default function AccountPage() {
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>Loading travellers...</div>
               ) : travellers.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>👥</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+                    <NavTravellers size={46} />
+                  </div>
                   <h4 style={{ margin: '0 0 0.25rem 0' }}>No saved travellers yet</h4>
                   <p style={{ color: '#64748b', fontSize: '0.88rem', margin: 0 }}>
                     Add companions once to skip retyping passenger information during flight and package checkouts.
@@ -1741,8 +1784,8 @@ export default function AccountPage() {
             boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>
-                📱 Twilio SMS Verification
+              <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <IconPhoneOtp size={22} /> Twilio SMS Verification
               </h3>
               <button onClick={() => setPhoneModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>
                 ✕

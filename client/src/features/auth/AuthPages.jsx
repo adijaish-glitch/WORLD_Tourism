@@ -4,17 +4,32 @@ import { useAuth } from './AuthContext';
 import { useToast } from '../../components/ui/ToastContext';
 import { auth, googleProvider, isFirebaseConfigured } from '../../config/firebase';
 import { signInWithPopup, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
+import {
+  getAvatarComponent,
+  IconWarning,
+  IconEmail,
+  IconPhoneOtp,
+  FlagIndia,
+  FlagUS,
+  FlagUK,
+  FlagUAE,
+  FlagSingapore,
+  FlagAustralia,
+  FlagGermany,
+  FlagFrance,
+  FlagJapan
+} from '../../components/ui/Icons';
 
 const COUNTRY_CODES = [
-  { code: '+91', label: '🇮🇳 India (+91)' },
-  { code: '+1', label: '🇺🇸 US (+1)' },
-  { code: '+44', label: '🇬🇧 UK (+44)' },
-  { code: '+971', label: '🇦🇪 UAE (+971)' },
-  { code: '+65', label: '🇸🇬 Singapore (+65)' },
-  { code: '+61', label: '🇦🇺 Australia (+61)' },
-  { code: '+49', label: '🇩🇪 Germany (+49)' },
-  { code: '+33', label: '🇫🇷 France (+33)' },
-  { code: '+81', label: '🇯🇵 Japan (+81)' },
+  { code: '+91', label: 'India (+91)' },
+  { code: '+1', label: 'US (+1)' },
+  { code: '+44', label: 'UK (+44)' },
+  { code: '+971', label: 'UAE (+971)' },
+  { code: '+65', label: 'Singapore (+65)' },
+  { code: '+61', label: 'Australia (+61)' },
+  { code: '+49', label: 'Germany (+49)' },
+  { code: '+33', label: 'France (+33)' },
+  { code: '+81', label: 'Japan (+81)' },
 ];
 
 // ─── SVG Icons ───
@@ -394,7 +409,7 @@ export function LoginPage() {
 
           {formError && (
             <div className="auth-inline-alert error">
-              <span>⚠️</span>
+              <IconWarning size={16} />
               <span>{formError}</span>
             </div>
           )}
@@ -425,14 +440,18 @@ export function LoginPage() {
               className={`auth-mode-tab ${authMode === 'email' ? 'active' : ''}`}
               onClick={() => { setAuthMode('email'); setFormError(''); }}
             >
-              ✉️ Email Access
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <IconEmail size={14} /> Email Access
+              </span>
             </button>
             <button
               type="button"
               className={`auth-mode-tab ${authMode === 'phone' ? 'active' : ''}`}
               onClick={() => { setAuthMode('phone'); setFormError(''); }}
             >
-              📱 Phone SMS OTP
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <IconPhoneOtp size={14} /> Phone SMS OTP
+              </span>
             </button>
           </div>
 
@@ -809,7 +828,7 @@ export function RegisterPage() {
 
           {formError && (
             <div className="auth-inline-alert error">
-              <span>⚠️</span>
+              <IconWarning size={16} />
               <span>{formError}</span>
             </div>
           )}
@@ -869,8 +888,10 @@ export function RegisterPage() {
                     type="button"
                     className={`avatar-chip ${formData.avatarUrl === emoji ? 'active' : ''}`}
                     onClick={() => setFormData({ ...formData, avatarUrl: emoji })}
+                    title={`Select avatar: ${emoji}`}
+                    style={{ padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
-                    {emoji}
+                    {getAvatarComponent(emoji, 30)}
                   </button>
                 ))}
               </div>
@@ -1069,7 +1090,7 @@ export function ForgotPasswordPage() {
 
           {formError && (
             <div className="auth-inline-alert error">
-              <span>⚠️</span>
+              <IconWarning size={16} />
               <span>{formError}</span>
             </div>
           )}
@@ -1217,7 +1238,7 @@ export function ResetPasswordPage() {
 
           {formError && (
             <div className="auth-inline-alert error">
-              <span>⚠️</span>
+              <IconWarning size={16} />
               <span>{formError}</span>
             </div>
           )}

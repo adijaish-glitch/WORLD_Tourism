@@ -1,6 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
+import {
+  getAvatarComponent,
+  NavProfile,
+  NavTrips,
+  IconAdminOffice,
+  IconFlight,
+  NavSecurity
+} from '../ui/Icons';
 
 export default function Navbar() {
   const { isAuthenticated, isAdmin, user, logout } = useAuth();
@@ -130,7 +138,9 @@ export default function Navbar() {
                 {user?.avatar_url && user.avatar_url.startsWith('http') ? (
                   <img src={user.avatar_url} alt="" style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover' }} />
                 ) : (
-                  <span style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center' }}>{user?.avatar_url || '👤'}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    {getAvatarComponent(user?.avatar_url || '🏔️', 26)}
+                  </span>
                 )}
                 <span>{user?.full_name?.split(' ')[0] || 'Profile'}</span>
                 <span style={{
@@ -168,8 +178,8 @@ export default function Navbar() {
                     <div style={{ fontSize: '0.78rem', color: '#71717a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
                       {user?.email || user?.phone || 'Member'}
                     </div>
-                    <div style={{ display: 'inline-block', marginTop: '6px', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', background: isAdmin ? '#fef3c7' : '#f4f4f5', color: isAdmin ? '#92400e' : '#52525b', fontWeight: 600 }}>
-                      {isAdmin ? '🛡️ Administrator' : '✈️ Traveler'}
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '6px', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', background: isAdmin ? '#fef3c7' : '#f4f4f5', color: isAdmin ? '#92400e' : '#52525b', fontWeight: 600 }}>
+                      {isAdmin ? <><NavSecurity size={12} /> Administrator</> : <><IconFlight size={12} /> Traveler</>}
                     </div>
                   </div>
 
@@ -191,7 +201,7 @@ export default function Navbar() {
                       onMouseEnter={(e) => e.currentTarget.style.background = '#f4f4f5'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     >
-                      <span style={{ fontSize: '1rem' }}>👤</span>
+                      <NavProfile size={16} />
                       <span>My Profile</span>
                     </Link>
 
@@ -211,7 +221,7 @@ export default function Navbar() {
                       onMouseEnter={(e) => e.currentTarget.style.background = '#f4f4f5'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     >
-                      <span style={{ fontSize: '1rem' }}>📊</span>
+                      <NavTrips size={16} />
                       <span>Dashboard & Bookings</span>
                     </Link>
 
@@ -232,7 +242,7 @@ export default function Navbar() {
                         onMouseEnter={(e) => e.currentTarget.style.background = '#f4f4f5'}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                       >
-                        <span style={{ fontSize: '1rem' }}>⚙️</span>
+                        <IconAdminOffice size={16} />
                         <span>Admin Console</span>
                       </Link>
                     )}

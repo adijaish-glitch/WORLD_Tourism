@@ -12,7 +12,7 @@ export default function HomePage() {
       destination_name: 'Paris, France',
       duration_days: 6,
       base_price: 1850,
-      image_url: '/images/paris.svg',
+      image_url: '/images/paris.jpg',
       hotel_name: 'Le Grand Paris Hotel'
     },
     {
@@ -21,7 +21,7 @@ export default function HomePage() {
       destination_name: 'Dubai, UAE',
       duration_days: 5,
       base_price: 1450,
-      image_url: '/images/dubai.svg',
+      image_url: '/images/dubai.jpg',
       hotel_name: 'Burj View Palms Resort'
     },
     {
@@ -30,7 +30,7 @@ export default function HomePage() {
       destination_name: 'Maldives',
       duration_days: 7,
       base_price: 2400,
-      image_url: '/images/maldives.svg',
+      image_url: '/images/maldives.jpg',
       hotel_name: 'Crystal Lagoon Water Villas'
     },
     {
@@ -301,12 +301,11 @@ export default function HomePage() {
         <div className="almanac-card" style={{ zIndex: 10 }}>
           <div className="almanac-image-wrapper">
             <img
-              src="/images/paris.svg"
-              alt="Paris"
+              src="/images/paris.jpg"
+              alt="Paris, France"
               className="almanac-image"
               loading="lazy"
-              referrerPolicy="no-referrer"
-              onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }}
+              onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80'; }}
             />
           </div>
           <div className="almanac-content">
@@ -325,12 +324,11 @@ export default function HomePage() {
         <div className="almanac-card" style={{ zIndex: 11, top: '140px' }}>
           <div className="almanac-image-wrapper">
             <img
-              src="/images/dubai.svg"
-              alt="Dubai"
+              src="/images/dubai.jpg"
+              alt="Dubai, UAE"
               className="almanac-image"
               loading="lazy"
-              referrerPolicy="no-referrer"
-              onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }}
+              onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80'; }}
             />
           </div>
           <div className="almanac-content">
@@ -349,12 +347,11 @@ export default function HomePage() {
         <div className="almanac-card" style={{ zIndex: 12, top: '160px' }}>
           <div className="almanac-image-wrapper">
             <img
-              src="/images/maldives.svg"
+              src="/images/maldives.jpg"
               alt="Maldives"
               className="almanac-image"
               loading="lazy"
-              referrerPolicy="no-referrer"
-              onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImg; }}
+              onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=800&q=80'; }}
             />
           </div>
           <div className="almanac-content">

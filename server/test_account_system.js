@@ -49,7 +49,7 @@ async function runAccountTests() {
     item_id: 1,
     title: 'Paris, France',
     subtitle: 'City of Light',
-    image_url: '/images/paris.svg',
+    image_url: '/images/paris.jpg',
     price: 1850,
     rating: 4.9,
     link_url: '/destinations/1'

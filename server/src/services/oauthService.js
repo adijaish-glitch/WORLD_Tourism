@@ -69,9 +69,9 @@ class OAuthService {
     const expectedClientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '570542000883-4qukp766km3vbhru67momjce9u7ckm9v.apps.googleusercontent.com';
     if (expectedClientId) {
       const matched = tokenInfo.aud === expectedClientId ||
-                      tokenInfo.issued_to === expectedClientId ||
-                      tokenInfo.audience === expectedClientId ||
-                      tokenInfo.azp === expectedClientId;
+        tokenInfo.issued_to === expectedClientId ||
+        tokenInfo.audience === expectedClientId ||
+        tokenInfo.azp === expectedClientId;
       if (!matched) {
         throw new Error('Google token client ID mismatch');
       }
@@ -87,8 +87,8 @@ class OAuthService {
 
     // 4. Verify Email Status
     const isEmailVerified = tokenInfo.email_verified === 'true' ||
-                            tokenInfo.email_verified === true ||
-                            tokenInfo.verified_email === true;
+      tokenInfo.email_verified === true ||
+      tokenInfo.verified_email === true;
     if (!isEmailVerified) {
       throw new Error('Google account email is not verified');
     }
@@ -112,7 +112,7 @@ class OAuthService {
         });
         if (userInfo.name) fullName = userInfo.name;
         if (userInfo.picture) avatarUrl = userInfo.picture;
-      } catch {}
+      } catch { }
     }
 
     return {

@@ -3,6 +3,7 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { travelAPI } from '../api/client';
 import TravelSearchWidget from '../components/travel/TravelSearchWidget';
 import ExternalBookingModal from '../components/travel/ExternalBookingModal';
+import LoadingAnimation from '../components/ui/LoadingAnimation';
 import {
   IconFlight,
   IconHotel,
@@ -258,14 +259,11 @@ export default function TravelSearchPage() {
 
           {/* Loading State */}
           {loading && (
-            <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-              <div className="splash-bar mx-auto" style={{ width: '120px' }}>
-                <div className="splash-bar-inner"></div>
-              </div>
-              <p style={{ marginTop: '1.5rem', color: '#64748b', fontSize: '0.95rem' }}>
-                Scanning certified airline, hotel, and operator inventories...
-              </p>
-            </div>
+            <LoadingAnimation
+              size={130}
+              message="Searching Live Inventories..."
+              subtext="Scanning certified airline, hotel, rail, and coach networks in real-time."
+            />
           )}
 
           {/* Error State */}

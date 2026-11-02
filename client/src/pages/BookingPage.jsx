@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { packagesAPI, bookingsAPI } from '../api/client';
 import { useToast } from '../components/ui/ToastContext';
 import { useAuth } from '../features/auth/AuthContext';
+import LoadingAnimation from '../components/ui/LoadingAnimation';
 
 export default function BookingPage() {
   const { packageId } = useParams();
@@ -86,7 +87,7 @@ export default function BookingPage() {
     }));
   };
 
-  if (loading) return <div className="container page"><div className="splash-bar mx-auto mt-xl"><div className="splash-bar-inner"></div></div></div>;
+  if (loading) return <LoadingAnimation fullPage size={130} message="Preparing Secure Booking Session..." subtext="Validating package dates, room tiers, and seasonal rates." />;
 
   return (
     <div className="container page" style={{ maxWidth: '800px' }}>

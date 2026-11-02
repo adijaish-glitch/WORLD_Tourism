@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { destinationsAPI, countriesAPI } from '../api/client';
+import LoadingAnimation from '../components/ui/LoadingAnimation';
 
 export default function DestinationDetailPage() {
   const { id } = useParams();
@@ -29,7 +30,7 @@ export default function DestinationDetailPage() {
     });
   }, [id]);
 
-  if (loading) return <div className="container page"><div className="splash-bar mx-auto mt-xl"><div className="splash-bar-inner"></div></div></div>;
+  if (loading) return <LoadingAnimation fullPage size={130} message="Loading Destination Overview..." subtext="Retrieving verified regional facts, accommodations, and itineraries." />;
   if (!data) return <div className="container page"><div className="empty-state">Destination not found.</div></div>;
 
   const { destination: d, hotels, packages, reviews } = data;

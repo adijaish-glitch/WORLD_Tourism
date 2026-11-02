@@ -3,6 +3,7 @@ import { reportsAPI, bookingsAPI, usersAPI, travelAPI, accountAPI, destinationsA
 import { useAuth } from '../features/auth/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useToast } from '../components/ui/ToastContext';
+import LoadingAnimation from '../components/ui/LoadingAnimation';
 import {
   IconAdminOffice,
   IconQuickAction,
@@ -200,14 +201,12 @@ export default function AdminDashboard() {
 
   if (loading || !stats) {
     return (
-      <div className="container page" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div className="splash-bar mx-auto" style={{ width: '200px', height: '4px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-            <div style={{ width: '60%', height: '100%', background: '#059669', animation: 'pulse 1.5s infinite' }}></div>
-          </div>
-          <p style={{ marginTop: '1rem', color: '#64748b', fontWeight: 500 }}>Loading TIMS Executive Control Console...</p>
-        </div>
-      </div>
+      <LoadingAnimation
+        fullPage
+        size={140}
+        message="Initializing Executive Control Console..."
+        subtext="Aggregating metrics across destinations, properties, direct bookings, and security feeds."
+      />
     );
   }
 

@@ -1,5 +1,6 @@
 const BaseTravelAdapter = require('./BaseTravelAdapter');
 const { getDb } = require('../../db/connection');
+const DeepLinkBuilder = require('./DeepLinkBuilder');
 
 class FlightAdapter extends BaseTravelAdapter {
   constructor() {
@@ -66,7 +67,7 @@ class FlightAdapter extends BaseTravelAdapter {
         currency: 'USD',
         price_basis: 'per_person',
         is_estimated: 1,
-        deep_link: 'https://www.makemytrip.com/flights',
+        deep_link: DeepLinkBuilder.getFlightLink(origin, destination, departureDate),
         rating: 4.7,
         image_url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80',
         operator_or_airline: 'Global Sky Partner (Live Schedule)',
@@ -81,6 +82,7 @@ class FlightAdapter extends BaseTravelAdapter {
 
     return rows.map(r => this.formatOffer({
       ...r,
+      deep_link: DeepLinkBuilder.getFlightLink(r.origin || origin, r.destination || destination, departureDate),
       bookingType: 'external_redirect',
       travelClass: travelClass || 'Economy',
       passengers: Number(passengers) || 1,

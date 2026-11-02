@@ -1,5 +1,6 @@
 const BaseTravelAdapter = require('./BaseTravelAdapter');
 const { getDb } = require('../../db/connection');
+const DeepLinkBuilder = require('./DeepLinkBuilder');
 
 class BusAdapter extends BaseTravelAdapter {
   constructor() {
@@ -54,7 +55,7 @@ class BusAdapter extends BaseTravelAdapter {
         currency: 'USD',
         price_basis: 'per_seat',
         is_estimated: 1,
-        deep_link: 'https://www.redbus.in',
+        deep_link: DeepLinkBuilder.getBusLink(origin, destination, departureDate),
         rating: 4.6,
         image_url: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80',
         operator_or_airline: 'Verified Intercity Coach Partner',
@@ -75,6 +76,7 @@ class BusAdapter extends BaseTravelAdapter {
 
     return rows.map(r => this.formatOffer({
       ...r,
+      deep_link: DeepLinkBuilder.getBusLink(r.origin || origin, r.destination || destination, departureDate),
       bookingType: 'external_redirect',
       supports_direct_booking: 0,
       departureDate: departureDate || new Date().toISOString().split('T')[0],

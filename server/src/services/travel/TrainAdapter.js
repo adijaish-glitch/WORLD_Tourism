@@ -1,5 +1,6 @@
 const BaseTravelAdapter = require('./BaseTravelAdapter');
 const { getDb } = require('../../db/connection');
+const DeepLinkBuilder = require('./DeepLinkBuilder');
 
 class TrainAdapter extends BaseTravelAdapter {
   constructor() {
@@ -55,7 +56,7 @@ class TrainAdapter extends BaseTravelAdapter {
         currency: 'USD',
         price_basis: 'per_person',
         is_estimated: 1,
-        deep_link: 'https://www.irctc.co.in',
+        deep_link: DeepLinkBuilder.getTrainLink(origin, destination, journeyDate),
         rating: 4.7,
         image_url: 'https://images.unsplash.com/photo-1532105956626-9569c03602f6?auto=format&fit=crop&w=600&q=80',
         operator_or_airline: 'Indian Railways / Regional Rail',
@@ -76,6 +77,7 @@ class TrainAdapter extends BaseTravelAdapter {
 
     return rows.map(r => this.formatOffer({
       ...r,
+      deep_link: DeepLinkBuilder.getTrainLink(r.origin || origin, r.destination || destination, journeyDate),
       bookingType: 'external_redirect',
       supports_direct_booking: 0,
       journeyDate: journeyDate || new Date().toISOString().split('T')[0],

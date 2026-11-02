@@ -1,5 +1,6 @@
 const BaseTravelAdapter = require('./BaseTravelAdapter');
 const { getDb } = require('../../db/connection');
+const DeepLinkBuilder = require('./DeepLinkBuilder');
 
 class PackageAdapter extends BaseTravelAdapter {
   constructor() {
@@ -108,7 +109,7 @@ class PackageAdapter extends BaseTravelAdapter {
         is_estimated: 1,
         supports_direct_booking: 0,
         bookingType: 'external_redirect',
-        deep_link: o.deep_link,
+        deep_link: DeepLinkBuilder.getPackageLink(o.destination),
         rating: o.rating || 4.9,
         image_url: o.image_url,
         operator_or_airline: o.operator_or_airline,

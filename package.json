@@ -11,7 +11,8 @@
     "db:seed": "cd server && npm run seed",
     "db:setup": "cd server && npm run migrate && npm run seed",
     "build": "npm run render:build",
-    "render:build": "npm install --include=dev --legacy-peer-deps && cd client && npm install --include=dev --legacy-peer-deps && npm run build && cd ../server && npm install --include=dev --legacy-peer-deps",
+    "render:build": "cd server && npm install --legacy-peer-deps",
+    "build:client": "cd client && npm run build",
     "start": "node server/src/app.js"
   },
   "dependencies": {

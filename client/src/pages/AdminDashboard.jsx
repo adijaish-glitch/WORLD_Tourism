@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { reportsAPI, bookingsAPI, usersAPI, travelAPI, accountAPI } from '../api/client';
+import { reportsAPI, bookingsAPI, usersAPI, travelAPI, accountAPI, destinationsAPI, hotelsAPI, packagesAPI } from '../api/client';
 import { useAuth } from '../features/auth/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useToast } from '../components/ui/ToastContext';
@@ -9,6 +9,8 @@ import {
   IconFlight,
   IconGlobe,
   IconLocationPin,
+  IconHotel,
+  IconHolidayPackage,
   NavTravellers,
   IconShieldTrust,
   getAvatarComponent
@@ -19,6 +21,8 @@ const CHART_COLORS = ['#083c6b', '#00b4d8', '#2a9df4', '#85c1e9', '#0d9f6e', '#d
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { success, error } = useToast();
+  
+  // Data State
   const [stats, setStats] = useState(null);
   const [revenue, setRevenue] = useState([]);
   const [occupancy, setOccupancy] = useState([]);
@@ -27,34 +31,55 @@ export default function AdminDashboard() {
   const [providers, setProviders] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [tickets, setTickets] = useState([]);
+  const [destinations, setDestinations] = useState([]);
+  const [hotels, setHotels] = useState([]);
+  const [packages, setPackages] = useState([]);
+
+  // Ticket Reply & Interactive State
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [adminReplyText, setAdminReplyText] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Search Filters
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Modals for CRUD
+  const [destModal, setDestModal] = useState({ open: false, isEditing: false, data: {} });
+  const [hotelModal, setHotelModal] = useState({ open: false, isEditing: false, data: {} });
+  const [packageModal, setPackageModal] = useState({ open: false, isEditing: false, data: {} });
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [stRes, revRes, occRes, bookRes, userRes, provRes, auditRes, tktRes] = await Promise.all([
+      const [stRes, revRes, occRes, bookRes, userRes, provRes, auditRes, tktRes, destRes, hotRes, pkgRes] = await Promise.all([
         reportsAPI.summary(),
         reportsAPI.revenue(),
         reportsAPI.occupancy(),
-        bookingsAPI.list({ limit: 20 }),
+        bookingsAPI.list({ limit: 50 }),
         usersAPI.list(),
         travelAPI.providers().catch(() => ({ data: { providers: [] } })),
-        travelAPI.auditLogs({ limit: 30 }).catch(() => ({ data: { logs: [] } })),
-        accountAPI.adminListTickets().catch(() => ({ data: { tickets: [] } }))
+        travelAPI.auditLogs({ limit: 50 }).catch(() => ({ data: { logs: [] } })),
+        accountAPI.adminListTickets().catch(() => ({ data: { tickets: [] } })),
+        destinationsAPI.list({ limit: 100 }).catch(() => ({ data: { destinations: [] } })),
+        hotelsAPI.list({}).catch(() => ({ data: { hotels: [] } })),
+        packagesAPI.list({}).catch(() => ({ data: { packages: [] } }))
       ]);
+
       setStats(stRes.data.stats);
       setRevenue(revRes.data.data);
-      setOccupancy(occRes.data.data.slice(0, 10)); // Top 10
-      setBookings(bookRes.data.bookings);
-      setUsers(userRes.data.users);
+      setOccupancy(occRes.data.data.slice(0, 10));
+      setBookings(bookRes.data.bookings || []);
+      setUsers(userRes.data.users || []);
       setProviders(provRes.data.providers || []);
       setAuditLogs(auditRes.data.logs || []);
       setTickets(tktRes.data.tickets || []);
+      setDestinations(destRes.data.destinations || []);
+      setHotels(hotRes.data.hotels || []);
+      setPackages(pkgRes.data.packages || []);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to fetch admin data:', err);
+      error('Failed to load dashboard data');
     }
     setLoading(false);
   };
@@ -63,118 +88,294 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
 
+  // ─── BOOKING ACTIONS ───
   const handleCancelBooking = async (id) => {
-    if (!window.confirm('Cancel this booking?')) return;
+    if (!window.confirm('Cancel this booking permanently?')) return;
     try {
       await bookingsAPI.cancel(id);
-      success('Booking cancelled');
+      success('Booking cancelled successfully');
       fetchData();
-    } catch (err) { error('Failed to cancel'); }
+    } catch (err) {
+      error('Failed to cancel booking');
+    }
   };
 
+  // ─── USER ACTIONS ───
   const toggleUserStatus = async (id, currentStatus) => {
     try {
       await usersAPI.update(id, { is_active: !currentStatus });
-      success('User updated');
+      success(`User account ${!currentStatus ? 'activated' : 'deactivated'}`);
       fetchData();
-    } catch (err) { error('Update failed'); }
+    } catch (err) {
+      error('Update failed');
+    }
   };
 
-  if (loading || !stats) return <div className="container page"><div className="splash-bar mx-auto mt-xl"><div className="splash-bar-inner"></div></div></div>;
+  // ─── DESTINATION CRUD ───
+  const handleSaveDestination = async (e) => {
+    e.preventDefault();
+    try {
+      if (destModal.isEditing) {
+        await destinationsAPI.update(destModal.data.id, destModal.data);
+        success('Destination updated successfully');
+      } else {
+        await destinationsAPI.create(destModal.data);
+        success('New destination created');
+      }
+      setDestModal({ open: false, isEditing: false, data: {} });
+      fetchData();
+    } catch (err) {
+      error('Failed to save destination');
+    }
+  };
+
+  const handleDeleteDestination = async (id) => {
+    if (!window.confirm('Are you sure you want to remove this destination?')) return;
+    try {
+      await destinationsAPI.delete(id);
+      success('Destination removed');
+      fetchData();
+    } catch (err) {
+      error('Failed to delete destination');
+    }
+  };
+
+  // ─── HOTEL CRUD ───
+  const handleSaveHotel = async (e) => {
+    e.preventDefault();
+    try {
+      if (hotelModal.isEditing) {
+        await hotelsAPI.update(hotelModal.data.id, hotelModal.data);
+        success('Hotel details updated');
+      } else {
+        await hotelsAPI.create(hotelModal.data);
+        success('Hotel added to catalog');
+      }
+      setHotelModal({ open: false, isEditing: false, data: {} });
+      fetchData();
+    } catch (err) {
+      error('Failed to save hotel');
+    }
+  };
+
+  const handleDeleteHotel = async (id) => {
+    if (!window.confirm('Delete this hotel property from TIMS?')) return;
+    try {
+      await hotelsAPI.delete(id);
+      success('Hotel deleted');
+      fetchData();
+    } catch (err) {
+      error('Failed to delete hotel');
+    }
+  };
+
+  // ─── PACKAGE CRUD ───
+  const handleSavePackage = async (e) => {
+    e.preventDefault();
+    try {
+      if (packageModal.isEditing) {
+        await packagesAPI.update(packageModal.data.id, packageModal.data);
+        success('Tour package updated');
+      } else {
+        await packagesAPI.create(packageModal.data);
+        success('Tour package published');
+      }
+      setPackageModal({ open: false, isEditing: false, data: {} });
+      fetchData();
+    } catch (err) {
+      error('Failed to save package');
+    }
+  };
+
+  const handleDeletePackage = async (id) => {
+    if (!window.confirm('Delete this tour package?')) return;
+    try {
+      await packagesAPI.delete(id);
+      success('Package deleted');
+      fetchData();
+    } catch (err) {
+      error('Failed to delete package');
+    }
+  };
+
+  if (loading || !stats) {
+    return (
+      <div className="container page" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="splash-bar mx-auto" style={{ width: '200px', height: '4px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ width: '60%', height: '100%', background: '#059669', animation: 'pulse 1.5s infinite' }}></div>
+          </div>
+          <p style={{ marginTop: '1rem', color: '#64748b', fontWeight: 500 }}>Loading TIMS Executive Control Console...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Filtered Lists
+  const filteredDestinations = destinations.filter(d =>
+    d.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    d.country?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    d.region?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredHotels = hotels.filter(h =>
+    h.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    h.dest_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    h.category?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredPackages = packages.filter(p =>
+    p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.dest_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.hotel_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredBookings = bookings.filter(b =>
+    b.id?.toString().includes(searchQuery) ||
+    b.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    b.user_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    b.dest_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredUsers = users.filter(u =>
+    u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.username?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="container page">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+    <div className="container page" style={{ maxWidth: '1440px', paddingBottom: '4rem' }}>
+      {/* ─── HEADER BAR ─── */}
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <div className="badge-pill" style={{ marginBottom: '0.5rem', background: '#fef3c7', color: '#92400e', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <IconAdminOffice size={16} /> Administrative Authority
+          <div className="badge-pill" style={{ marginBottom: '0.4rem', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 600, padding: '4px 10px', borderRadius: '20px' }}>
+            <IconAdminOffice size={15} /> Executive Command Suite
           </div>
-          <h1>TIMS Executive Control Console</h1>
-          <p>System overview, multi-provider travel integrations, booking oversight, and audit logs.</p>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.3rem 0' }}>TIMS Administrator Console</h1>
+          <p style={{ color: '#64748b', fontSize: '0.95rem', margin: 0 }}>
+            Unified management for destinations, hotel properties, tour packages, client bookings, and partner travel networks.
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={fetchData} className="btn" style={{ background: '#f4f4f5', border: '1px solid #e4e4e7', fontSize: '0.88rem' }}>
-            Refresh Data
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <button onClick={fetchData} className="btn" style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#334155', fontSize: '0.88rem', fontWeight: 600, padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer' }}>
+            ↻ Refresh Data
           </button>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)', borderBottom: '1px solid var(--border-color)', overflowX: 'auto' }}>
+      {/* ─── NAVIGATION TABS WITH ITEM BADGES ─── */}
+      <div style={{
+        display: 'flex',
+        gap: '0.4rem',
+        marginBottom: '2rem',
+        borderBottom: '2px solid #e2e8f0',
+        overflowX: 'auto',
+        paddingBottom: '2px'
+      }}>
         {[
-          { id: 'overview', label: 'Overview & Metrics' },
-          { id: 'bookings', label: 'Direct Bookings' },
-          { id: 'tickets', label: `Support Tickets (${tickets.filter(t => t.status !== 'closed').length})` },
-          { id: 'providers', label: 'Travel Integrations' },
-          { id: 'audit', label: 'Security Audit Logs' },
-          { id: 'users', label: 'User Directory' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            className="btn btn-ghost"
-            style={{
-              borderRadius: 0,
-              borderBottom: activeTab === tab.id ? '2px solid var(--accent-primary)' : '2px solid transparent',
-              color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-secondary)',
-              fontWeight: activeTab === tab.id ? 700 : 500,
-              whiteSpace: 'nowrap'
-            }}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+          { id: 'overview', label: 'Overview', icon: IconQuickAction },
+          { id: 'destinations', label: 'Destinations', count: destinations.length, icon: IconLocationPin },
+          { id: 'hotels', label: 'Hotels', count: hotels.length, icon: IconHotel },
+          { id: 'packages', label: 'Packages', count: packages.length, icon: IconHolidayPackage },
+          { id: 'bookings', label: 'Bookings', count: bookings.length, icon: IconFlight },
+          { id: 'tickets', label: 'Support Tickets', count: tickets.filter(t => t.status !== 'closed').length, badgeColor: '#ef4444', icon: NavTravellers },
+          { id: 'providers', label: 'Integrations', count: providers.length || 6, icon: IconGlobe },
+          { id: 'audit', label: 'Audit Logs', count: auditLogs.length, icon: IconShieldTrust },
+          { id: 'users', label: 'User Directory', count: users.length, icon: NavTravellers }
+        ].map(tab => {
+          const isActive = activeTab === tab.id;
+          const IconCmp = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveTab(tab.id); setSearchQuery(''); }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '0.65rem 1.1rem',
+                border: 'none',
+                background: 'transparent',
+                borderBottom: isActive ? '3px solid #059669' : '3px solid transparent',
+                color: isActive ? '#059669' : '#64748b',
+                fontWeight: isActive ? 700 : 500,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <IconCmp size={18} />
+              <span>{tab.label}</span>
+              {tab.count !== undefined && (
+                <span style={{
+                  fontSize: '0.72rem',
+                  padding: '2px 7px',
+                  borderRadius: '10px',
+                  background: isActive ? '#d1fae5' : (tab.badgeColor ? '#fee2e2' : '#f1f5f9'),
+                  color: isActive ? '#065f46' : (tab.badgeColor ? '#991b1b' : '#64748b'),
+                  fontWeight: 700
+                }}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* TAB 1: OVERVIEW */}
+      {/* ─── TAB 1: OVERVIEW & ANALYTICS ─── */}
       {activeTab === 'overview' && (
         <div className="animation-fade">
-          <div className="grid grid-4" style={{ marginBottom: 'var(--space-2xl)' }}>
+          <div className="grid grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
             {[
-              { Icon: IconQuickAction, label: 'Total Revenue', value: '$' + stats.total_revenue.toLocaleString() },
-              { Icon: IconFlight, label: 'Active Bookings', value: stats.active_bookings },
-              { Icon: IconGlobe, label: 'Countries Catalogued', value: stats.total_countries || 250 },
-              { Icon: IconLocationPin, label: 'Destinations', value: stats.total_destinations },
-              { Icon: NavTravellers, label: 'Total Users', value: stats.total_users },
-              { Icon: IconAdminOffice, label: 'Integrated Providers', value: providers.length || 6 }
+              { Icon: IconQuickAction, label: 'Gross Revenue', value: '$' + (stats.total_revenue || 0).toLocaleString(), color: '#047857' },
+              { Icon: IconFlight, label: 'Active Bookings', value: stats.active_bookings || 0, color: '#0284c7' },
+              { Icon: IconLocationPin, label: 'Destinations', value: destinations.length, color: '#d97706' },
+              { Icon: IconHotel, label: 'Hotel Properties', value: hotels.length, color: '#6366f1' },
+              { Icon: IconHolidayPackage, label: 'Tour Packages', value: packages.length, color: '#ec4899' },
+              { Icon: NavTravellers, label: 'Registered Clients', value: stats.total_users || users.length, color: '#0f766e' },
+              { Icon: IconGlobe, label: 'Countries Covered', value: stats.total_countries || 250, color: '#0284c7' },
+              { Icon: IconAdminOffice, label: 'Live Travel APIs', value: providers.length || 6, color: '#059669' }
             ].map((s, i) => (
-              <div key={i} className="glass-card" style={{ padding: 'var(--space-lg)', textAlign: 'center' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem' }}>
-                  <s.Icon size={24} />
+              <div key={i} className="glass-card" style={{ background: '#ffffff', borderRadius: '12px', padding: '1.25rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', textAlign: 'left' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>{s.label}</span>
+                  <div style={{ padding: '6px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <s.Icon size={20} />
+                  </div>
                 </div>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-navy)' }}>
-                  {s.value}
-                </div>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 500 }}>{s.label}</div>
+                <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a' }}>{s.value}</div>
               </div>
             ))}
           </div>
 
-          <div className="grid grid-2">
-            <div className="glass-card" style={{ padding: 'var(--space-xl)' }}>
-              <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: 'var(--space-lg)' }}>Revenue Trend</h3>
-              <div style={{ height: 300 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+            <div className="glass-card" style={{ background: '#ffffff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', marginBottom: '1rem' }}>Monthly Revenue Trajectory</h3>
+              <div style={{ height: 280 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={revenue}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                    <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
-                    <YAxis stroke="var(--text-muted)" fontSize={12} />
-                    <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 8 }} />
-                    <Line type="monotone" dataKey="revenue" stroke="#00b4d8" strokeWidth={2} dot={{ fill: '#00b4d8' }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
+                    <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={v => `$${v}`} />
+                    <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }} />
+                    <Line type="monotone" dataKey="revenue" stroke="#059669" strokeWidth={3} dot={{ fill: '#059669', r: 4 }} activeDot={{ r: 6 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            <div className="glass-card" style={{ padding: 'var(--space-xl)' }}>
-              <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: 'var(--space-lg)' }}>Hotel Occupancy Rate</h3>
-              <div style={{ height: 300 }}>
+            <div className="glass-card" style={{ background: '#ffffff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', marginBottom: '1rem' }}>Top Hotel Occupancy Rates</h3>
+              <div style={{ height: 280 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={occupancy} margin={{ bottom: 40 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                    <XAxis dataKey="hotel_name" stroke="var(--text-muted)" fontSize={11} angle={-20} textAnchor="end" height={60} />
-                    <YAxis stroke="var(--text-muted)" fontSize={12} />
-                    <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 8 }} />
-                    <Bar dataKey="occupancy_rate" fill="#2a9df4" radius={[4, 4, 0, 0]} />
+                  <BarChart data={occupancy} margin={{ bottom: 30 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="hotel_name" stroke="#94a3b8" fontSize={11} angle={-20} textAnchor="end" height={50} />
+                    <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={v => `${v}%`} />
+                    <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8 }} />
+                    <Bar dataKey="occupancy_rate" fill="#0284c7" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -183,44 +384,293 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* TAB 2: BOOKINGS */}
-      {activeTab === 'bookings' && (
-        <div className="animation-fade glass-card" style={{ padding: 'var(--space-xl)' }}>
-          <h2 style={{ fontFamily: 'var(--font-serif)', marginBottom: 'var(--space-lg)' }}>Recent Bookings</h2>
-          <div className="table-container">
-            <table>
+      {/* ─── TAB 2: DESTINATIONS MANAGEMENT ─── */}
+      {activeTab === 'destinations' && (
+        <div className="animation-fade glass-card" style={{ background: '#ffffff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flex: 1, maxWidth: '400px' }}>
+              <input
+                type="text"
+                placeholder="Search destinations by name, country, or region..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ width: '100%', padding: '0.55rem 0.9rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+              />
+            </div>
+            <button
+              onClick={() => setDestModal({ open: true, isEditing: false, data: { name: '', country: '', region: 'Europe', description: '', latitude: 0, longitude: 0, image_url: '', rating: 4.5, best_season: 'All Year' } })}
+              className="btn btn-primary"
+              style={{ background: '#059669', color: '#ffffff', fontWeight: 600, padding: '0.55rem 1.25rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+            >
+              + Add Destination
+            </button>
+          </div>
+
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
               <thead>
-                <tr>
-                  <th>Ref ID</th>
-                  <th>Customer</th>
-                  <th>Destination</th>
-                  <th>Dates</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: 700 }}>
+                  <th style={{ padding: '0.75rem 1rem' }}>Destination</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Country</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Region</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Rating</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Best Season</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {bookings.map(b => (
-                  <tr key={b.id}>
-                    <td style={{ fontWeight: 700, fontFamily: 'monospace' }}>
-                      {b.reference_number || `TIMS-${String(b.id).padStart(5, '0')}`}
+                {filteredDestinations.map(d => (
+                  <tr key={d.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {d.image_url ? (
+                        <img src={d.image_url} alt="" style={{ width: '42px', height: '42px', borderRadius: '6px', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '42px', height: '42px', borderRadius: '6px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📍</div>
+                      )}
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{d.name}</div>
+                        <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>ID: #{d.id}</div>
+                      </div>
                     </td>
-                    <td>
-                      <div>{b.customer_name}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#71717a' }}>{b.customer_email}</div>
+                    <td style={{ padding: '0.75rem 1rem', color: '#334155' }}>{d.country}</td>
+                    <td style={{ padding: '0.75rem 1rem' }}><span style={{ background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>{d.region}</span></td>
+                    <td style={{ padding: '0.75rem 1rem', color: '#d97706', fontWeight: 700 }}>★ {d.rating}</td>
+                    <td style={{ padding: '0.75rem 1rem', color: '#64748b' }}>{d.best_season || 'Anytime'}</td>
+                    <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
+                      <button
+                        onClick={() => setDestModal({ open: true, isEditing: true, data: { ...d } })}
+                        style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '6px', marginRight: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteDestination(d.id)}
+                        style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}
+                      >
+                        Delete
+                      </button>
                     </td>
-                    <td>{b.dest_name}</td>
-                    <td>{b.check_in}</td>
-                    <td style={{ fontWeight: 600 }}>${b.total_price.toLocaleString()}</td>
-                    <td>
-                      <span className={`badge badge-${b.status === 'confirmed' ? 'confirmed' : b.status === 'cancelled' ? 'cancelled' : 'pending'}`}>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ─── TAB 3: HOTELS MANAGEMENT ─── */}
+      {activeTab === 'hotels' && (
+        <div className="animation-fade glass-card" style={{ background: '#ffffff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flex: 1, maxWidth: '400px' }}>
+              <input
+                type="text"
+                placeholder="Search hotels by property name, destination..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ width: '100%', padding: '0.55rem 0.9rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+              />
+            </div>
+            <button
+              onClick={() => setHotelModal({ open: true, isEditing: false, data: { name: '', dest_id: destinations[0]?.id || 1, category: 'luxury', price_per_night: 250, rating: 4.8, total_rooms: 50, amenities: 'WiFi, Pool, Spa, Breakfast', image_url: '', description: '' } })}
+              className="btn btn-primary"
+              style={{ background: '#059669', color: '#ffffff', fontWeight: 600, padding: '0.55rem 1.25rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+            >
+              + Add Hotel Property
+            </button>
+          </div>
+
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: 700 }}>
+                  <th style={{ padding: '0.75rem 1rem' }}>Property</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Destination</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Category</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Price / Night</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Rating</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Inventory</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredHotels.map(h => (
+                  <tr key={h.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {h.image_url ? (
+                        <img src={h.image_url} alt="" style={{ width: '42px', height: '42px', borderRadius: '6px', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '42px', height: '42px', borderRadius: '6px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🏨</div>
+                      )}
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{h.name}</div>
+                        <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>ID: #{h.id}</div>
+                      </div>
+                    </td>
+                    <td style={{ padding: '0.75rem 1rem', color: '#334155' }}>{h.dest_name || `Destination #${h.dest_id}`}</td>
+                    <td style={{ padding: '0.75rem 1rem' }}><span style={{ background: '#eff6ff', color: '#1d4ed8', padding: '3px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, textTransform: 'capitalize' }}>{h.category}</span></td>
+                    <td style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#0f172a' }}>${h.price_per_night}</td>
+                    <td style={{ padding: '0.75rem 1rem', color: '#d97706', fontWeight: 700 }}>★ {h.rating}</td>
+                    <td style={{ padding: '0.75rem 1rem', color: '#64748b' }}>{h.total_rooms || 50} rooms</td>
+                    <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
+                      <button
+                        onClick={() => setHotelModal({ open: true, isEditing: true, data: { ...h } })}
+                        style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '6px', marginRight: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteHotel(h.id)}
+                        style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ─── TAB 4: TOUR PACKAGES MANAGEMENT ─── */}
+      {activeTab === 'packages' && (
+        <div className="animation-fade glass-card" style={{ background: '#ffffff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flex: 1, maxWidth: '400px' }}>
+              <input
+                type="text"
+                placeholder="Search packages by name, destination, or partner..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ width: '100%', padding: '0.55rem 0.9rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+              />
+            </div>
+            <button
+              onClick={() => setPackageModal({ open: true, isEditing: false, data: { name: '', dest_id: destinations[0]?.id || 1, hotel_id: hotels[0]?.id || 1, description: '', base_price: 999, duration_days: 5, max_group_size: 15, seasonal_multiplier: 1.0, image_url: '' } })}
+              className="btn btn-primary"
+              style={{ background: '#059669', color: '#ffffff', fontWeight: 600, padding: '0.55rem 1.25rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+            >
+              + Create Tour Package
+            </button>
+          </div>
+
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: 700 }}>
+                  <th style={{ padding: '0.75rem 1rem' }}>Package Title</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Destination</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Partner Hotel</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Duration</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Base Price</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Max Guests</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPackages.map(p => (
+                  <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {p.image_url ? (
+                        <img src={p.image_url} alt="" style={{ width: '42px', height: '42px', borderRadius: '6px', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '42px', height: '42px', borderRadius: '6px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🎒</div>
+                      )}
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{p.name}</div>
+                        <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>ID: #{p.id}</div>
+                      </div>
+                    </td>
+                    <td style={{ padding: '0.75rem 1rem', color: '#334155' }}>{p.dest_name || `Destination #${p.dest_id}`}</td>
+                    <td style={{ padding: '0.75rem 1rem', color: '#475569' }}>{p.hotel_name || `Hotel #${p.hotel_id}`}</td>
+                    <td style={{ padding: '0.75rem 1rem' }}><span style={{ background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>{p.duration_days} Days</span></td>
+                    <td style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#059669' }}>${p.base_price}</td>
+                    <td style={{ padding: '0.75rem 1rem', color: '#64748b' }}>{p.max_group_size} travelers</td>
+                    <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
+                      <button
+                        onClick={() => setPackageModal({ open: true, isEditing: true, data: { ...p } })}
+                        style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '6px', marginRight: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeletePackage(p.id)}
+                        style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ─── TAB 5: DIRECT BOOKINGS ─── */}
+      {activeTab === 'bookings' && (
+        <div className="animation-fade glass-card" style={{ background: '#ffffff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Client Booking Ledger</h2>
+            <input
+              type="text"
+              placeholder="Search by ID, customer name, email..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ width: '320px', padding: '0.5rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+            />
+          </div>
+
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: 700 }}>
+                  <th style={{ padding: '0.75rem 1rem' }}>Ref ID</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Customer</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Destination</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Dates</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Travelers</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Amount</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Status</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredBookings.map(b => (
+                  <tr key={b.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', fontWeight: 700, color: '#0284c7' }}>#{b.id}</td>
+                    <td style={{ padding: '0.75rem 1rem' }}>
+                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{b.user_name || 'Direct Guest'}</div>
+                      <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{b.user_email || 'guest@tims.com'}</div>
+                    </td>
+                    <td style={{ padding: '0.75rem 1rem', color: '#334155' }}>{b.dest_name}</td>
+                    <td style={{ padding: '0.75rem 1rem', color: '#64748b' }}>{b.check_in} → {b.check_out}</td>
+                    <td style={{ padding: '0.75rem 1rem', color: '#64748b' }}>{b.travelers} guests</td>
+                    <td style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#0f172a' }}>${b.total_price}</td>
+                    <td style={{ padding: '0.75rem 1rem' }}>
+                      <span style={{
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        fontSize: '0.8rem',
+                        fontWeight: 700,
+                        background: b.status === 'confirmed' ? '#dcfce7' : (b.status === 'pending' ? '#fef9c3' : '#fee2e2'),
+                        color: b.status === 'confirmed' ? '#15803d' : (b.status === 'pending' ? '#a16207' : '#b91c1c'),
+                        textTransform: 'capitalize'
+                      }}>
                         {b.status}
                       </span>
                     </td>
-                    <td>
-                      {b.status === 'confirmed' && (
-                        <button className="btn btn-ghost btn-sm" onClick={() => handleCancelBooking(b.id)}>Cancel</button>
+                    <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
+                      {b.status !== 'cancelled' && (
+                        <button
+                          onClick={() => handleCancelBooking(b.id)}
+                          style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}
+                        >
+                          Cancel
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -231,60 +681,149 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* TAB 3: TRAVEL INTEGRATIONS & PROVIDERS */}
-      {activeTab === 'providers' && (
-        <div className="animation-fade glass-card" style={{ padding: 'var(--space-xl)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <div>
-              <h2 style={{ fontFamily: 'var(--font-serif)', margin: '0 0 4px 0' }}>Multi-Provider Inventory Architecture</h2>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '0.88rem' }}>
-                Authorized distribution connectors, ticketing partners, and meta-search links.
-              </p>
+      {/* ─── TAB 6: SUPPORT TICKETS ─── */}
+      {activeTab === 'tickets' && (
+        <div className="animation-fade glass-card" style={{ background: '#ffffff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', marginBottom: '1.25rem' }}>Traveler Concierge Tickets</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: selectedTicket ? '1fr 1fr' : '1fr', gap: '1.5rem' }}>
+            <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: 700 }}>
+                    <th style={{ padding: '0.75rem' }}>ID</th>
+                    <th style={{ padding: '0.75rem' }}>Subject</th>
+                    <th style={{ padding: '0.75rem' }}>Status</th>
+                    <th style={{ padding: '0.75rem' }}>Priority</th>
+                    <th style={{ padding: '0.75rem' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tickets.map(t => (
+                    <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9', background: selectedTicket?.id === t.id ? '#f0fdf4' : 'transparent' }}>
+                      <td style={{ padding: '0.75rem', fontFamily: 'monospace', fontWeight: 700 }}>#{t.id}</td>
+                      <td style={{ padding: '0.75rem', fontWeight: 600, color: '#0f172a' }}>{t.subject}</td>
+                      <td style={{ padding: '0.75rem' }}>
+                        <span style={{
+                          padding: '2px 7px',
+                          borderRadius: '4px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          background: t.status === 'open' ? '#dbeafe' : (t.status === 'resolved' ? '#dcfce7' : '#f1f5f9'),
+                          color: t.status === 'open' ? '#1d4ed8' : (t.status === 'resolved' ? '#15803d' : '#475569')
+                        }}>
+                          {t.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '0.75rem', textTransform: 'capitalize', color: t.priority === 'urgent' ? '#b91c1c' : '#475569', fontWeight: 600 }}>{t.priority}</td>
+                      <td style={{ padding: '0.75rem' }}>
+                        <button
+                          onClick={() => setSelectedTicket(t)}
+                          style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          View & Reply
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
 
-          <div className="table-container">
-            <table>
+            {selectedTicket && (
+              <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>Ticket #{selectedTicket.id}: {selectedTicket.subject}</h3>
+                  <button onClick={() => setSelectedTicket(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#64748b' }}>✕</button>
+                </div>
+                <div style={{ maxHeight: '250px', overflowY: 'auto', marginBottom: '1rem', background: '#ffffff', padding: '1rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: '#334155' }}>{selectedTicket.message || selectedTicket.description}</p>
+                </div>
+                <form
+                  onSubmit={async e => {
+                    e.preventDefault();
+                    if (!adminReplyText.trim()) return;
+                    try {
+                      await accountAPI.adminReplyTicket(selectedTicket.id, { message: adminReplyText });
+                      success('Reply sent to customer');
+                      setAdminReplyText('');
+                      fetchData();
+                    } catch (err) {
+                      error('Failed to send reply');
+                    }
+                  }}
+                  style={{ display: 'flex', gap: '0.5rem' }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Type official concierge response..."
+                    value={adminReplyText}
+                    onChange={e => setAdminReplyText(e.target.value)}
+                    style={{ flex: 1, padding: '0.5rem 0.8rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                    required
+                  />
+                  <button type="submit" style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
+                    Send
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ─── TAB 7: TRAVEL INTEGRATIONS ─── */}
+      {activeTab === 'providers' && (
+        <div className="animation-fade glass-card" style={{ background: '#ffffff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.4rem' }}>Live Travel Aggregator Adapters</h2>
+          <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Active upstream search adapters and direct deep-linking gateways.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+            {[
+              { code: 'AMADEUS', name: 'Google Flights & Amadeus', type: 'Flights', status: 'Active', latency: '48ms', deepLink: 'https://www.google.com/travel/flights' },
+              { code: 'CONFIRMTKT', name: 'ConfirmTkt & IRCTC', type: 'Trains', status: 'Active', latency: '32ms', deepLink: 'https://www.confirmtkt.com' },
+              { code: 'REDBUS', name: 'RedBus & AbhiBus', type: 'Buses', status: 'Active', latency: '29ms', deepLink: 'https://www.redbus.in' },
+              { code: 'BOOKING_COM', name: 'Booking.com & Agoda', type: 'Hotels', status: 'Active', latency: '65ms', deepLink: 'https://www.booking.com' },
+              { code: 'MAKEMYTRIP', name: 'MakeMyTrip & Tour Packages', type: 'Packages', status: 'Active', latency: '40ms', deepLink: 'https://www.makemytrip.com' },
+              { code: 'TIMS_DIRECT', name: 'TIMS Native Inventory Engine', type: 'Direct Booking', status: 'Active', latency: '8ms', deepLink: '/search' }
+            ].map((p, i) => (
+              <div key={i} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem', background: '#f8fafc' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '10px' }}>● {p.status}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Ping: {p.latency}</span>
+                </div>
+                <h4 style={{ margin: '0 0 0.25rem 0', color: '#0f172a' }}>{p.name}</h4>
+                <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.75rem' }}>Category: <strong>{p.type}</strong></div>
+                <a href={p.deepLink} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.82rem', color: '#0284c7', textDecoration: 'none', fontWeight: 600 }}>
+                  Test Deep-Link Gateway ↗
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── TAB 8: AUDIT LOGS ─── */}
+      {activeTab === 'audit' && (
+        <div className="animation-fade glass-card" style={{ background: '#ffffff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', marginBottom: '1.25rem' }}>Security & Dispatch Audit Trail</h2>
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
               <thead>
-                <tr>
-                  <th>Provider Code</th>
-                  <th>Partner Name</th>
-                  <th>Category</th>
-                  <th>Website Portal</th>
-                  <th>Fulfillment Type</th>
-                  <th>Status</th>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: 700 }}>
+                  <th style={{ padding: '0.65rem 0.85rem' }}>Timestamp</th>
+                  <th style={{ padding: '0.65rem 0.85rem' }}>Event Action</th>
+                  <th style={{ padding: '0.65rem 0.85rem' }}>Target / URL</th>
+                  <th style={{ padding: '0.65rem 0.85rem' }}>IP Address</th>
+                  <th style={{ padding: '0.65rem 0.85rem' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {providers.map(p => (
-                  <tr key={p.id}>
-                    <td style={{ fontWeight: 700, fontFamily: 'monospace', color: '#1e40af' }}>{p.provider_code}</td>
-                    <td style={{ fontWeight: 600 }}>{p.name}</td>
-                    <td>
-                      <span className="badge badge-standard" style={{ textTransform: 'capitalize' }}>
-                        {p.category}
-                      </span>
-                    </td>
-                    <td>
-                      <a href={p.website_url} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontSize: '0.85rem' }}>
-                        {p.website_url.replace('https://', '')} ↗
-                      </a>
-                    </td>
-                    <td>
-                      <span className={`badge ${p.supports_direct_booking ? 'badge-confirmed' : 'badge-pending'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        {p.supports_direct_booking ? (
-                          <>
-                            <IconQuickAction size={12} />
-                            <span>Direct API Booking</span>
-                          </>
-                        ) : (
-                          <span>Safe Outbound Redirect</span>
-                        )}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="badge badge-confirmed">Active</span>
-                    </td>
+                {auditLogs.map((log, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '0.65rem 0.85rem', color: '#64748b', whiteSpace: 'nowrap' }}>{new Date(log.created_at || Date.now()).toLocaleString()}</td>
+                    <td style={{ padding: '0.65rem 0.85rem', fontWeight: 600, color: '#0f172a' }}>{log.action_type || log.event || 'OUTBOUND_REDIRECT'}</td>
+                    <td style={{ padding: '0.65rem 0.85rem', color: '#0284c7', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.target_url || log.details || 'N/A'}</td>
+                    <td style={{ padding: '0.65rem 0.85rem', fontFamily: 'monospace', color: '#64748b' }}>{log.ip_address || '127.0.0.1'}</td>
+                    <td style={{ padding: '0.65rem 0.85rem' }}><span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700 }}>SUCCESS</span></td>
                   </tr>
                 ))}
               </tbody>
@@ -293,288 +832,69 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* TAB 4: AUDIT LOGS */}
-      {activeTab === 'audit' && (
-        <div className="animation-fade glass-card" style={{ padding: 'var(--space-xl)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <div>
-              <h2 style={{ fontFamily: 'var(--font-serif)', margin: '0 0 4px 0' }}>Security & Transaction Audit Logs</h2>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '0.88rem' }}>
-                Immutable event stream for open-redirect tracking, customer referrals, and administrative mutations.
-              </p>
-            </div>
-          </div>
-
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Action</th>
-                  <th>User ID</th>
-                  <th>IP Address</th>
-                  <th>Event Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {auditLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
-                      No recent audit events logged.
-                    </td>
-                  </tr>
-                ) : (
-                  auditLogs.map(l => (
-                    <tr key={l.id}>
-                      <td style={{ fontSize: '0.8rem', color: '#64748b', whiteSpace: 'nowrap' }}>
-                        {new Date(l.created_at).toLocaleString()}
-                      </td>
-                      <td>
-                        <span style={{
-                          fontFamily: 'monospace',
-                          fontSize: '0.78rem',
-                          fontWeight: 700,
-                          padding: '2px 6px',
-                          borderRadius: '6px',
-                          background: l.action.includes('REDIRECT') ? '#e0f2fe' : '#f1f5f9',
-                          color: l.action.includes('REDIRECT') ? '#0369a1' : '#334155'
-                        }}>
-                          {l.action}
-                        </span>
-                      </td>
-                      <td>{l.user_id ? `#${l.user_id}` : 'Anonymous Traveler'}</td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{l.ip_address}</td>
-                      <td style={{ fontSize: '0.8rem', color: '#475569', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {l.details}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* TAB: SUPPORT CONCIERGE TICKETS */}
-      {activeTab === 'tickets' && (
-        <div className="animation-fade">
-          <div style={{ display: 'grid', gridTemplateColumns: selectedTicket ? '1fr 1.2fr' : '1fr', gap: '1.5rem' }}>
-            <div className="card">
-              <div className="card-body">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>Customer Support Requests</h3>
-                  <span className="badge badge-standard">{tickets.length} Total</span>
-                </div>
-
-                {tickets.length === 0 ? (
-                  <p style={{ color: '#71717a' }}>No support requests logged.</p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {tickets.map(t => (
-                      <div
-                        key={t.id}
-                        onClick={async () => {
-                          try {
-                            const res = await accountAPI.adminGetTicket(t.id);
-                            setSelectedTicket(res.data);
-                          } catch (err) {
-                            error('Failed to load ticket details');
-                          }
-                        }}
-                        style={{
-                          padding: '1rem',
-                          borderRadius: '12px',
-                          border: selectedTicket?.ticket?.id === t.id ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                          background: selectedTicket?.ticket?.id === t.id ? '#eff6ff' : '#f8fafc',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                          <strong style={{ fontSize: '0.85rem', color: '#0f172a' }}>#{t.ticket_number}</strong>
-                          <span style={{
-                            fontSize: '0.72rem',
-                            fontWeight: 700,
-                            padding: '0.15rem 0.5rem',
-                            borderRadius: '999px',
-                            background: t.status === 'open' ? '#dbeafe' : t.status === 'resolved' ? '#dcfce7' : t.status === 'closed' ? '#f1f5f9' : '#fef3c7',
-                            color: t.status === 'open' ? '#1d4ed8' : t.status === 'resolved' ? '#15803d' : t.status === 'closed' ? '#64748b' : '#b45309'
-                          }}>
-                            {t.status.toUpperCase()}
-                          </span>
-                        </div>
-                        <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', fontWeight: 700 }}>{t.subject}</h4>
-                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
-                          Traveler: {t.user_name} ({t.user_email}) ∙ {t.booking_reference ? `Ref #${t.booking_reference}` : 'General'}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {selectedTicket && (
-              <div className="card">
-                <div className="card-body">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
-                    <div>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#2563eb' }}>
-                        #{selectedTicket.ticket.ticket_number} ∙ Category: {selectedTicket.ticket.category}
-                      </span>
-                      <h3 style={{ margin: '0.25rem 0', fontSize: '1.2rem', fontWeight: 800 }}>{selectedTicket.ticket.subject}</h3>
-                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
-                        From: {selectedTicket.ticket.user_name} ({selectedTicket.ticket.user_email}) ∙ {selectedTicket.ticket.booking_reference && `Booking Ref: ${selectedTicket.ticket.booking_reference}`}
-                      </p>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <select
-                        value={selectedTicket.ticket.status}
-                        onChange={async (e) => {
-                          const newStatus = e.target.value;
-                          try {
-                            await accountAPI.adminUpdateTicketStatus(selectedTicket.ticket.id, newStatus);
-                            success(`Status updated to ${newStatus}`);
-                            setSelectedTicket(prev => ({ ...prev, ticket: { ...prev.ticket, status: newStatus } }));
-                            fetchData();
-                          } catch (err) {
-                            error('Failed to update status');
-                          }
-                        }}
-                        style={{ padding: '0.35rem 0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem', fontWeight: 600 }}
-                      >
-                        <option value="open">Open</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="awaiting_user_response">Awaiting User Response</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="closed">Closed</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Thread messages */}
-                  <div style={{ maxHeight: '280px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem', padding: '0.5rem' }}>
-                    {selectedTicket.messages?.map(m => {
-                      const isSupport = m.sender_type === 'support';
-                      return (
-                        <div
-                          key={m.id}
-                          style={{
-                            alignSelf: isSupport ? 'flex-end' : 'flex-start',
-                            maxWidth: '85%',
-                            background: isSupport ? '#eff6ff' : '#f8fafc',
-                            border: '1px solid',
-                            borderColor: isSupport ? '#bfdbfe' : '#e2e8f0',
-                            padding: '0.85rem',
-                            borderRadius: '12px'
-                          }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.2rem' }}>
-                            <strong style={{ fontSize: '0.8rem', color: isSupport ? '#1d4ed8' : '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              <span>{m.sender_name}</span>
-                              {isSupport && <IconShieldTrust size={12} />}
-                            </strong>
-                            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                              {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: 1.4 }}>
-                            {m.message}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Reply Form */}
-                  <form
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      if (!adminReplyText.trim()) return;
-                      try {
-                        const res = await accountAPI.adminReplyTicket(selectedTicket.ticket.id, {
-                          message: adminReplyText,
-                          status: 'awaiting_user_response'
-                        });
-                        setSelectedTicket(res.data);
-                        setAdminReplyText('');
-                        success('Reply dispatched to customer');
-                        fetchData();
-                      } catch (err) {
-                        error('Failed to send reply');
-                      }
-                    }}
-                    style={{ display: 'flex', gap: '0.75rem' }}
-                  >
-                    <input
-                      type="text"
-                      className="input"
-                      placeholder="Write concierge reply to traveler..."
-                      value={adminReplyText}
-                      onChange={e => setAdminReplyText(e.target.value)}
-                      style={{ flex: 1, margin: 0 }}
-                      required
-                    />
-                    <button type="submit" className="btn btn-primary" style={{ padding: '0.6rem 1.25rem', fontWeight: 700, borderRadius: '10px' }}>
-                      Send Reply
-                    </button>
-                  </form>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 5: USERS */}
+      {/* ─── TAB 9: USER DIRECTORY ─── */}
       {activeTab === 'users' && (
-        <div className="animation-fade glass-card" style={{ padding: 'var(--space-xl)' }}>
-          <h2 style={{ fontFamily: 'var(--font-serif)', marginBottom: 'var(--space-lg)' }}>User Management</h2>
-          <div className="table-container">
-            <table>
+        <div className="animation-fade glass-card" style={{ background: '#ffffff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Registered Traveler Directory</h2>
+            <input
+              type="text"
+              placeholder="Search by passenger name or email..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ width: '300px', padding: '0.5rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+            />
+          </div>
+
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
               <thead>
-                <tr>
-                  <th>Passenger</th>
-                  <th>Email</th>
-                  <th>Verification</th>
-                  <th>Provider</th>
-                  <th>Role</th>
-                  <th>Joined</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: 700 }}>
+                  <th style={{ padding: '0.75rem 1rem' }}>Passenger</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Email</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Role</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Status</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map(u => (
-                  <tr key={u.id}>
-                    <td style={{ fontWeight: 600 }}>
-                      <span style={{ marginRight: '6px', display: 'inline-flex', verticalAlign: 'middle' }}>
-                        {getAvatarComponent(u.avatar_url, 20)}
-                      </span>
-                      {u.full_name}
-                      {u.username && <span style={{ fontSize: '0.8rem', color: '#71717a', display: 'block' }}>@{u.username}</span>}
+                {filteredUsers.map(u => (
+                  <tr key={u.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {getAvatarComponent(u.avatar_url, 24)}
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#0f172a' }}>{u.full_name}</div>
+                        {u.username && <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>@{u.username}</span>}
+                      </div>
                     </td>
-                    <td>{u.email}</td>
-                    <td>
-                      <span className={`badge ${u.email_verified ? 'badge-confirmed' : 'badge-pending'}`}>
-                        {u.email_verified ? 'Verified' : 'Unverified'}
+                    <td style={{ padding: '0.75rem 1rem', color: '#475569' }}>{u.email}</td>
+                    <td style={{ padding: '0.75rem 1rem' }}><span style={{ background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>{u.role}</span></td>
+                    <td style={{ padding: '0.75rem 1rem' }}>
+                      <span style={{
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        fontSize: '0.8rem',
+                        fontWeight: 700,
+                        background: u.is_active ? '#dcfce7' : '#fee2e2',
+                        color: u.is_active ? '#15803d' : '#b91c1c'
+                      }}>
+                        {u.is_active ? 'Active' : 'Deactivated'}
                       </span>
                     </td>
-                    <td><span className="badge badge-standard" style={{ textTransform: 'capitalize' }}>{u.provider || 'local'}</span></td>
-                    <td><span className="badge badge-standard">{u.role}</span></td>
-                    <td>{new Date(u.created_at).toLocaleDateString()}</td>
-                    <td>
-                      <span className={`badge badge-${u.is_active ? 'confirmed' : 'cancelled'}`}>
-                        {u.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td>
+                    <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
                       {u.id !== user.id && (
                         <button
-                          className={`btn btn-sm ${u.is_active ? 'btn-danger' : 'btn-primary'}`}
                           onClick={() => toggleUserStatus(u.id, u.is_active)}
+                          style={{
+                            background: u.is_active ? '#fee2e2' : '#dcfce7',
+                            border: `1px solid ${u.is_active ? '#fca5a5' : '#86efac'}`,
+                            color: u.is_active ? '#b91c1c' : '#15803d',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '0.82rem',
+                            fontWeight: 600
+                          }}
                         >
                           {u.is_active ? 'Deactivate' : 'Activate'}
                         </button>
@@ -584,6 +904,359 @@ export default function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: ADD / EDIT DESTINATION ─── */}
+      {destModal.open && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '540px', padding: '1.75rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>{destModal.isEditing ? 'Edit Destination' : 'Add New Destination'}</h3>
+              <button onClick={() => setDestModal({ open: false, isEditing: false, data: {} })} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b' }}>✕</button>
+            </div>
+            <form onSubmit={handleSaveDestination}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={destModal.data.name || ''}
+                    onChange={e => setDestModal({ ...destModal, data: { ...destModal.data, name: e.target.value } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Country *</label>
+                  <input
+                    type="text"
+                    required
+                    value={destModal.data.country || ''}
+                    onChange={e => setDestModal({ ...destModal, data: { ...destModal.data, country: e.target.value } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Region</label>
+                  <select
+                    value={destModal.data.region || 'Europe'}
+                    onChange={e => setDestModal({ ...destModal, data: { ...destModal.data, region: e.target.value } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  >
+                    <option value="Europe">Europe</option>
+                    <option value="Asia">Asia</option>
+                    <option value="Americas">Americas</option>
+                    <option value="Middle East">Middle East</option>
+                    <option value="Africa">Africa</option>
+                    <option value="Oceania">Oceania</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Rating (1 - 5)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="1"
+                    max="5"
+                    value={destModal.data.rating || 4.5}
+                    onChange={e => setDestModal({ ...destModal, data: { ...destModal.data, rating: parseFloat(e.target.value) } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Image URL</label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/..."
+                  value={destModal.data.image_url || ''}
+                  onChange={e => setDestModal({ ...destModal, data: { ...destModal.data, image_url: e.target.value } })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Description</label>
+                <textarea
+                  rows={3}
+                  value={destModal.data.description || ''}
+                  onChange={e => setDestModal({ ...destModal, data: { ...destModal.data, description: e.target.value } })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.25rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setDestModal({ open: false, isEditing: false, data: {} })}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '0.5rem 1.25rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 }}
+                >
+                  {destModal.isEditing ? 'Save Changes' : 'Create Destination'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: ADD / EDIT HOTEL ─── */}
+      {hotelModal.open && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '540px', padding: '1.75rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>{hotelModal.isEditing ? 'Edit Hotel Property' : 'Add Hotel Property'}</h3>
+              <button onClick={() => setHotelModal({ open: false, isEditing: false, data: {} })} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b' }}>✕</button>
+            </div>
+            <form onSubmit={handleSaveHotel}>
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Hotel Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={hotelModal.data.name || ''}
+                  onChange={e => setHotelModal({ ...hotelModal, data: { ...hotelModal.data, name: e.target.value } })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Destination *</label>
+                  <select
+                    value={hotelModal.data.dest_id || destinations[0]?.id}
+                    onChange={e => setHotelModal({ ...hotelModal, data: { ...hotelModal.data, dest_id: parseInt(e.target.value) } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  >
+                    {destinations.map(d => (
+                      <option key={d.id} value={d.id}>{d.name} ({d.country})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Category</label>
+                  <select
+                    value={hotelModal.data.category || 'luxury'}
+                    onChange={e => setHotelModal({ ...hotelModal, data: { ...hotelModal.data, category: e.target.value } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  >
+                    <option value="luxury">Luxury</option>
+                    <option value="premium">Premium</option>
+                    <option value="standard">Standard</option>
+                    <option value="budget">Budget</option>
+                    <option value="resort">Resort</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Price / Night ($)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={hotelModal.data.price_per_night || 200}
+                    onChange={e => setHotelModal({ ...hotelModal, data: { ...hotelModal.data, price_per_night: parseInt(e.target.value) } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Rating (1 - 5)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="1"
+                    max="5"
+                    value={hotelModal.data.rating || 4.8}
+                    onChange={e => setHotelModal({ ...hotelModal, data: { ...hotelModal.data, rating: parseFloat(e.target.value) } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Rooms</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={hotelModal.data.total_rooms || 50}
+                    onChange={e => setHotelModal({ ...hotelModal, data: { ...hotelModal.data, total_rooms: parseInt(e.target.value) } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Amenities (comma separated)</label>
+                <input
+                  type="text"
+                  placeholder="Pool, Spa, Restaurant, WiFi, Butler"
+                  value={hotelModal.data.amenities || ''}
+                  onChange={e => setHotelModal({ ...hotelModal, data: { ...hotelModal.data, amenities: e.target.value } })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Image URL</label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/..."
+                  value={hotelModal.data.image_url || ''}
+                  onChange={e => setHotelModal({ ...hotelModal, data: { ...hotelModal.data, image_url: e.target.value } })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.25rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setHotelModal({ open: false, isEditing: false, data: {} })}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '0.5rem 1.25rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 }}
+                >
+                  {hotelModal.isEditing ? 'Save Changes' : 'Add Hotel'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: ADD / EDIT PACKAGE ─── */}
+      {packageModal.open && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '540px', padding: '1.75rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>{packageModal.isEditing ? 'Edit Tour Package' : 'Create Tour Package'}</h3>
+              <button onClick={() => setPackageModal({ open: false, isEditing: false, data: {} })} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b' }}>✕</button>
+            </div>
+            <form onSubmit={handleSavePackage}>
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Package Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Kyoto Cherry Blossom 5-Day Cultural Tour"
+                  value={packageModal.data.name || ''}
+                  onChange={e => setPackageModal({ ...packageModal, data: { ...packageModal.data, name: e.target.value } })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Destination *</label>
+                  <select
+                    value={packageModal.data.dest_id || destinations[0]?.id}
+                    onChange={e => setPackageModal({ ...packageModal, data: { ...packageModal.data, dest_id: parseInt(e.target.value) } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  >
+                    {destinations.map(d => (
+                      <option key={d.id} value={d.id}>{d.name} ({d.country})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Partner Hotel</label>
+                  <select
+                    value={packageModal.data.hotel_id || hotels[0]?.id}
+                    onChange={e => setPackageModal({ ...packageModal, data: { ...packageModal.data, hotel_id: parseInt(e.target.value) } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  >
+                    {hotels.map(h => (
+                      <option key={h.id} value={h.id}>{h.name} (${h.price_per_night}/nt)</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Base Price ($)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={packageModal.data.base_price || 999}
+                    onChange={e => setPackageModal({ ...packageModal, data: { ...packageModal.data, base_price: parseInt(e.target.value) } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Duration (Days)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={packageModal.data.duration_days || 5}
+                    onChange={e => setPackageModal({ ...packageModal, data: { ...packageModal.data, duration_days: parseInt(e.target.value) } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Max Travelers</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={packageModal.data.max_group_size || 15}
+                    onChange={e => setPackageModal({ ...packageModal, data: { ...packageModal.data, max_group_size: parseInt(e.target.value) } })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Image URL</label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/..."
+                  value={packageModal.data.image_url || ''}
+                  onChange={e => setPackageModal({ ...packageModal, data: { ...packageModal.data, image_url: e.target.value } })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Package Description & Itinerary</label>
+                <textarea
+                  rows={3}
+                  value={packageModal.data.description || ''}
+                  onChange={e => setPackageModal({ ...packageModal, data: { ...packageModal.data, description: e.target.value } })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.25rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setPackageModal({ open: false, isEditing: false, data: {} })}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '0.5rem 1.25rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 }}
+                >
+                  {packageModal.isEditing ? 'Save Changes' : 'Publish Package'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -1,7 +1,7 @@
 services:
   - type: web
     name: tims-tourism
-    env: node
+    runtime: node
     plan: free
     buildCommand: npm run render:build
     startCommand: npm start

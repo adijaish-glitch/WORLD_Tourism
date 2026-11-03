@@ -1,10 +1,11 @@
 const BaseTravelAdapter = require('./BaseTravelAdapter');
 const { getDb } = require('../../db/connection');
 const DeepLinkBuilder = require('./DeepLinkBuilder');
+const AviationstackService = require('./AviationstackService');
 
 class FlightAdapter extends BaseTravelAdapter {
   constructor() {
-    super('AMADEUS', 'Amadeus & Airline Partner Network', 'flights');
+    super('AVIATIONSTACK', 'Aviationstack & Global Airline Network', 'flights');
   }
 
   async search(params = {}) {
@@ -18,6 +19,29 @@ class FlightAdapter extends BaseTravelAdapter {
       maxPrice = null,
       sortBy = 'price'
     } = params;
+
+    // 1. Try Live Aviationstack Flight Radar API first
+    if (origin.trim() && destination.trim()) {
+      try {
+        const liveFlights = await AviationstackService.searchLiveFlights({
+          origin,
+          destination,
+          departureDate,
+          travelClass
+        });
+        if (liveFlights && liveFlights.length > 0) {
+          return {
+            category: this.category,
+            provider: 'Aviationstack Live Airline Radar',
+            totalCount: liveFlights.length,
+            searchedAt: new Date().toISOString(),
+            results: liveFlights
+          };
+        }
+      } catch (err) {
+        console.warn('Aviationstack live query failed, falling back to database:', err.message);
+      }
+    }
 
     const db = getDb();
     let query = `SELECT * FROM external_offers WHERE category = 'flights'`;

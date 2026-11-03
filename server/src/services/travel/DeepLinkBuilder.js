@@ -65,11 +65,8 @@ class DeepLinkBuilder {
   }
 
   static getTrainLink(origin, destination, date) {
-    const fromSlug = slugify(cleanCity(origin) || 'delhi');
-    const toSlug = slugify(cleanCity(destination) || 'varanasi');
-    
-    // ConfirmTkt directly shows train availability, waitlist prediction, and Tatkal status for the station pair
-    return `https://www.confirmtkt.com/trains/${fromSlug}-to-${toSlug}`;
+    // Official IRCTC Next Generation eTicketing & Reservation Portal
+    return `https://www.irctc.co.in/nget/train-search`;
   }
 
   static getBusLink(origin, destination, date) {

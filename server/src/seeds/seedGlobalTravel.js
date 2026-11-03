@@ -87,6 +87,87 @@ async function seedGlobalTravel() {
       'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=800',
       4.9, 'May - September', 'Mountains'
     ],
+    [
+      'Kanpur & Bithoor',
+      'India',
+      'Asia',
+      'Historic industrial and cultural hub along the sacred Ganges. Known for the legendary Bithoor Ghats, Allen Forest Zoo, iconic JK Temple, and Nana Rao Park.',
+      26.4499, 80.3319,
+      'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=800',
+      4.6, 'October - March', 'Historical'
+    ],
+    [
+      'Delhi & NCR',
+      'India',
+      'Asia',
+      'India’s bustling historic capital uniting ancient Mughal monuments like the Red Fort and Humayun’s Tomb with vibrant Chandni Chowk bazaars and modern avenues.',
+      28.6139, 77.2090,
+      'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=800',
+      4.8, 'October - March', 'Historical'
+    ],
+    [
+      'Gwalior Fort & Heritage',
+      'India',
+      'Asia',
+      'The pearl in the necklace of Indian forts. Renowned for the imposing 8th-century hilltop Gwalior Fort, opulent Jai Vilas Palace, and rich classical music heritage.',
+      26.2183, 78.1828,
+      'https://images.unsplash.com/photo-1609137144813-7d9921338f24?w=800',
+      4.7, 'October - March', 'Historical'
+    ],
+    [
+      'Lucknow City of Nawabs',
+      'India',
+      'Asia',
+      'The cultural heart of Awadh, famous for grand Bara Imambara architecture, intricate Chikankari embroidery, and legendary Awadhi culinary heritage.',
+      26.8467, 80.9462,
+      'https://images.unsplash.com/photo-1599818816933-7221e6490601?w=800',
+      4.8, 'October - March', 'Historical'
+    ],
+    [
+      'Mumbai Coastal Metropolis',
+      'India',
+      'Asia',
+      'India’s dazzling financial and cinema capital. Discover the Gateway of India, Marine Drive Queen’s Necklace, Elephanta Caves, and lively coastal culture.',
+      18.9220, 72.8347,
+      'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=800',
+      4.8, 'November - February', 'Beaches'
+    ],
+    [
+      'Rishikesh & Haridwar',
+      'India',
+      'Asia',
+      'The Yoga Capital of the World set along the foothills of the Himalayas. Renowned for white-water rafting, serene ashrams, Laxman Jhula, and evening Ganga Aarti.',
+      30.0869, 78.2676,
+      'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800',
+      4.9, 'September - April', 'Religious'
+    ],
+    [
+      'Shimla & Manali',
+      'India',
+      'Asia',
+      'Breathtaking Himalayan hill stations with snow-capped peaks, pine forests, colonial Mall Road promenades, Solang Valley adventures, and Rohtang Pass vistas.',
+      32.2432, 77.1892,
+      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=800',
+      4.9, 'Throughout the year', 'Mountains'
+    ],
+    [
+      'Kolkata Cultural Capital',
+      'India',
+      'Asia',
+      'The City of Joy, famous for Victoria Memorial, Howrah Bridge, colonial architecture, vibrant Durga Puja celebrations, and celebrated literature.',
+      22.5726, 88.3639,
+      'https://images.unsplash.com/photo-1558431382-27e303142255?w=800',
+      4.7, 'October - March', 'Historical'
+    ],
+    [
+      'Bengaluru Garden City',
+      'India',
+      'Asia',
+      'The Silicon Valley of India, famed for lush botanical gardens, Cubbon Park, Lalbagh, vibrant craft breweries, and pleasant year-round weather.',
+      12.9716, 77.5946,
+      'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=800',
+      4.6, 'October - March', 'Plains'
+    ],
 
     // 🇬🇧 UNITED KINGDOM
     [

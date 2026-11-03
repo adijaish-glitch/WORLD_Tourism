@@ -23,13 +23,140 @@ exports.list = (req, res) => {
     params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
   }
   const whereClause = 'WHERE ' + where.join(' AND ');
-  const packages = queryAll(`
+  let packages = queryAll(`
     SELECT p.*, d.name as dest_name, d.country as dest_country, h.name as hotel_name, h.category as hotel_category
     FROM packages p
     JOIN destinations d ON p.dest_id = d.id
     JOIN hotels h ON p.hotel_id = h.id
     ${whereClause} ORDER BY p.base_price ASC LIMIT ?
   `, [...params, Number(limit)]);
+
+  // On-the-fly dynamic package generator for any unseeded searched destination
+  if (packages.length === 0 && search && search.trim().length >= 3 && !min_price && !max_price) {
+    try {
+      const db = getDb();
+      const term = search.trim();
+      const cleanName = term.charAt(0).toUpperCase() + term.slice(1);
+
+      // Check if destination exists
+      let dStmt = db.prepare('SELECT id, name, country FROM destinations WHERE name LIKE ?');
+      dStmt.bind([`%${term}%`]);
+      let dest = dStmt.step() ? dStmt.getAsObject() : null;
+      dStmt.free();
+
+      let destId = dest?.id;
+      if (!destId) {
+        db.run(
+          'INSERT INTO destinations (name, country, region, description, latitude, longitude, image_url, rating, best_season, category) VALUES (?,?,?,?,?,?,?,?,?,?)',
+          [
+            cleanName,
+            'India',
+            'Asia',
+            `Curated holiday exploration of ${cleanName} featuring iconic local sights, cultural highlights, and bespoke accommodations.`,
+            25.0,
+            78.0,
+            'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800',
+            4.8,
+            'October - March',
+            'Historical'
+          ]
+        );
+        const newD = db.prepare('SELECT id FROM destinations ORDER BY id DESC LIMIT 1');
+        newD.step();
+        destId = newD.getAsObject().id;
+        newD.free();
+      }
+
+      // Check or create hotel
+      let hStmt = db.prepare('SELECT id FROM hotels WHERE dest_id = ?');
+      hStmt.bind([destId]);
+      let hotel = hStmt.step() ? hStmt.getAsObject() : null;
+      hStmt.free();
+
+      let hotelId = hotel?.id;
+      if (!hotelId) {
+        db.run(
+          'INSERT INTO hotels (name, dest_id, category, price_per_night, rating, total_rooms, amenities, image_url, description) VALUES (?,?,?,?,?,?,?,?,?)',
+          [
+            `${cleanName} Grand Heritage Hotel`,
+            destId,
+            'luxury',
+            110,
+            4.7,
+            50,
+            'WiFi,Breakfast,AC,Room Service,Restaurant,Concierge',
+            'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
+            `Premier accommodations in ${cleanName} with full amenities and central location.`
+          ]
+        );
+        const newH = db.prepare('SELECT id FROM hotels ORDER BY id DESC LIMIT 1');
+        newH.step();
+        hotelId = newH.getAsObject().id;
+        newH.free();
+      }
+
+      // Create 2 curated packages
+      db.run(
+        'INSERT INTO packages (name, dest_id, hotel_id, description, base_price, duration_days, max_group_size, seasonal_multiplier, image_url) VALUES (?,?,?,?,?,?,?,?,?)',
+        [
+          `${cleanName} Signature Experience`,
+          destId,
+          hotelId,
+          `The ultimate guided exploration of ${cleanName}. Private transfers, iconic sightseeing, gourmet local dining, and hand-picked excursions.`,
+          240,
+          4,
+          8,
+          1.1,
+          'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800'
+        ]
+      );
+      const p1 = db.prepare('SELECT id FROM packages ORDER BY id DESC LIMIT 1');
+      p1.step();
+      const pkg1Id = p1.getAsObject().id;
+      p1.free();
+
+      db.run('INSERT INTO addons (package_id, name, description, price) VALUES (?,?,?,?)',
+        [pkg1Id, 'Private Airport & Station Transfer', 'Seamless executive pickup & drop-off', 45]);
+      db.run('INSERT INTO addons (package_id, name, description, price) VALUES (?,?,?,?)',
+        [pkg1Id, 'Guided City Sightseeing Pass', 'Skip all monument queues with private guide', 60]);
+
+      db.run(
+        'INSERT INTO packages (name, dest_id, hotel_id, description, base_price, duration_days, max_group_size, seasonal_multiplier, image_url) VALUES (?,?,?,?,?,?,?,?,?)',
+        [
+          `${cleanName} Highlights & Heritage Tour`,
+          destId,
+          hotelId,
+          `An enriching 3-day holiday discovering hidden gems, scenic viewpoints, cultural masterclasses, and relaxing stays across ${cleanName}.`,
+          160,
+          3,
+          10,
+          1.0,
+          'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=800'
+        ]
+      );
+      const p2 = db.prepare('SELECT id FROM packages ORDER BY id DESC LIMIT 1');
+      p2.step();
+      const pkg2Id = p2.getAsObject().id;
+      p2.free();
+
+      db.run('INSERT INTO addons (package_id, name, description, price) VALUES (?,?,?,?)',
+        [pkg2Id, 'Gourmet Local Food Trail', 'Guided multi-course tasting session of signature dishes', 40]);
+
+      saveDb();
+
+      // Re-query with the new packages
+      packages = queryAll(`
+        SELECT p.*, d.name as dest_name, d.country as dest_country, h.name as hotel_name, h.category as hotel_category
+        FROM packages p
+        JOIN destinations d ON p.dest_id = d.id
+        JOIN hotels h ON p.hotel_id = h.id
+        ${whereClause} ORDER BY p.base_price ASC LIMIT ?
+      `, [...params, Number(limit)]);
+    } catch (e) {
+      console.warn('[packageController] Error auto-generating package:', e.message);
+    }
+  }
+
   // Attach addons
   packages.forEach(p => {
     p.addons = queryAll('SELECT * FROM addons WHERE package_id = ?', [p.id]);

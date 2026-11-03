@@ -29,14 +29,15 @@ exports.search = async (req, res, next) => {
       });
     }
 
-    const results = await adapters[cat].search(params);
+    const rawResults = await adapters[cat].search(params);
+    const offers = Array.isArray(rawResults) ? rawResults : (rawResults.results || []);
 
     res.json({
       category: cat,
       provider: adapters[cat].name,
-      totalCount: results.length,
+      totalCount: offers.length,
       searchedAt: new Date().toISOString(),
-      results
+      results: offers
     });
   } catch (err) {
     next(err);

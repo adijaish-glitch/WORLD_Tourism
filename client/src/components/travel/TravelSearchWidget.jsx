@@ -18,20 +18,26 @@ const TABS = [
   { id: 'packages', label: 'Holiday Packages', Icon: IconHolidayPackage },
 ];
 
-export default function TravelSearchWidget({ initialCategory = 'hotels', onSearchSubmit }) {
+export default function TravelSearchWidget({
+  initialCategory = 'hotels',
+  initialOrigin = '',
+  initialDestination = '',
+  initialDate = '',
+  onSearchSubmit
+}) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(initialCategory);
   const [validationError, setValidationError] = useState(null);
 
   // Today's date in YYYY-MM-DD
-  const today = new Date().toISOString().split('T')[0];
+  const today = initialDate || new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
-  // Search States
+  // Search States initialized with URL parameters if present
   const [flightData, setFlightData] = useState({
     tripType: 'one_way',
-    origin: 'New York (JFK)',
-    destination: 'Paris (CDG)',
+    origin: initialOrigin || 'New Delhi (DEL)',
+    destination: initialDestination || 'Mumbai (BOM)',
     departureDate: today,
     returnDate: tomorrow,
     passengers: 1,
@@ -39,7 +45,7 @@ export default function TravelSearchWidget({ initialCategory = 'hotels', onSearc
   });
 
   const [hotelData, setHotelData] = useState({
-    destination: 'Paris',
+    destination: initialDestination || 'Dubai',
     checkIn: today,
     checkOut: tomorrow,
     guests: 2,
@@ -47,23 +53,23 @@ export default function TravelSearchWidget({ initialCategory = 'hotels', onSearc
   });
 
   const [trainData, setTrainData] = useState({
-    origin: 'New Delhi (NDLS)',
-    destination: 'Varanasi Junction (BSB)',
+    origin: initialOrigin || 'Gwalior (GWL)',
+    destination: initialDestination || 'New Delhi (NDLS)',
     journeyDate: today,
     trainClass: 'All Classes',
     quota: 'General'
   });
 
   const [busData, setBusData] = useState({
-    origin: 'Bengaluru',
-    destination: 'Goa',
+    origin: initialOrigin || 'Gwalior',
+    destination: initialDestination || 'Delhi',
     departureDate: today,
     busType: 'All Types'
   });
 
   const [packageData, setPackageData] = useState({
-    destination: 'Bali',
-    origin: 'Mumbai',
+    destination: initialDestination || 'Goa',
+    origin: initialOrigin || 'Delhi',
     travelers: 2,
     durationDays: '7',
     maxPrice: ''

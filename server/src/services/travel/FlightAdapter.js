@@ -77,31 +77,17 @@ class FlightAdapter extends BaseTravelAdapter {
     stmt.free();
 
     // If specific origin/destination was searched and no static record exists in SQLite,
-    // generate realistic schedule route preview from partner timetable standards
+    // call Aviationstack service directly to generate full realistic airline schedule
     if (rows.length === 0 && origin.trim() && destination.trim()) {
-      const estimatedPrice = 180 + Math.floor(Math.abs(origin.length - destination.length) * 45);
-      const dynamicRoute = {
-        id: `FL-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-        provider_code: this.providerCode,
-        category: 'flights',
-        title: `Scheduled Flight: ${origin} to ${destination}`,
-        origin: origin.trim(),
-        destination: destination.trim(),
-        price: estimatedPrice,
-        currency: 'USD',
-        price_basis: 'per_person',
-        is_estimated: 1,
-        deep_link: DeepLinkBuilder.getFlightLink(origin, destination, departureDate),
-        rating: 4.7,
-        image_url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80',
-        operator_or_airline: 'Global Sky Partner (Live Schedule)',
-        departure_time: '11:15',
-        arrival_time: '18:40',
-        duration: '7h 25m',
-        stops_or_class: `1 Stop · ${travelClass}`,
-        amenities_or_terms: 'Standard baggage allowance, In-flight refreshments, Revalidation required'
-      };
-      rows.push(dynamicRoute);
+      const fallbackFlights = await AviationstackService.searchLiveFlights({
+        origin,
+        destination,
+        departureDate,
+        travelClass
+      });
+      if (fallbackFlights && fallbackFlights.length > 0) {
+        return fallbackFlights;
+      }
     }
 
     return rows.map(r => this.formatOffer({

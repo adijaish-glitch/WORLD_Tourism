@@ -94,7 +94,14 @@ export default function TravelSearchPage() {
     <div className="container page" style={{ paddingTop: '2rem' }}>
       {/* Top Search Hub */}
       <div style={{ marginBottom: '2.5rem' }}>
-        <TravelSearchWidget initialCategory={category} onSearchSubmit={handleWidgetSearch} />
+        <TravelSearchWidget
+          key={`${category}-${searchParams.get('origin')}-${searchParams.get('destination')}`}
+          initialCategory={category}
+          initialOrigin={searchParams.get('origin') || ''}
+          initialDestination={searchParams.get('destination') || ''}
+          initialDate={searchParams.get('departureDate') || searchParams.get('journeyDate') || ''}
+          onSearchSubmit={handleWidgetSearch}
+        />
       </div>
 
       {/* Main Results Layout: Sidebar + Card Grid */}
